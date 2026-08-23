@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">My Financial Plan</string>
+    <string name="title_activity_main">My Financial Plan</string>
+    <string name="package_name">com.checkoutram.finplan</string>
+    <string name="custom_url_scheme">com.checkoutram.finplan</string>
+</resources>
