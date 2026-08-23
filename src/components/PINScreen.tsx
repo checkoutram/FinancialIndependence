@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useApp } from '../utils/store';
 import { t } from '../utils/i18n';
-import { Fingerprint, Lock, Eye, EyeOff } from 'lucide-react';
+import { Fingerprint, Lock, Eye, EyeOff, Delete, ArrowRight } from 'lucide-react';
 import { isBiometricAvailable, authenticateBiometric } from '../utils/encryption';
 
 interface PINScreenProps {
@@ -17,29 +17,42 @@ export default function PINScreen({ onUnlock, mode, onPINCreated }: PINScreenPro
   const [attempts, setAttempts] = useState(0);
   const [showPin, setShowPin] = useState(false);
   const [biometricAvailable, setBiometricAvailable] = useState(false);
+  const [pressedKey, setPressedKey] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { unlockApp } = useApp();
 
   useEffect(() => {
     isBiometricAvailable().then(setBiometricAvailable);
-    inputRef.current?.focus();
+    setTimeout(() => inputRef.current?.focus(), 100);
+  }, []);
+
+  const triggerHaptic = useCallback(() => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      navigator.vibrate(15);
+    }
   }, []);
 
   const handleDigit = (digit: string) => {
+    triggerHaptic();
     if (error) setError('');
     if (mode === 'confirm') {
       if (confirmPin.length < 6) setConfirmPin(p => p + digit);
     } else {
       if (pin.length < 6) setPin(p => p + digit);
     }
+    setPressedKey(digit);
+    setTimeout(() => setPressedKey(null), 150);
   };
 
   const handleBackspace = () => {
+    triggerHaptic();
     if (mode === 'confirm') {
       setConfirmPin(p => p.slice(0, -1));
     } else {
       setPin(p => p.slice(0, -1));
     }
+    setPressedKey('backspace');
+    setTimeout(() => setPressedKey(null), 150);
   };
 
   const handleSubmit = async () => {
@@ -48,12 +61,10 @@ export default function PINScreen({ onUnlock, mode, onPINCreated }: PINScreenPro
       setError(t('pinTooShort'));
       return;
     }
-
     if (mode === 'create') {
       onPINCreated?.(currentPin);
       return;
     }
-
     if (mode === 'confirm') {
       if (pin !== confirmPin) {
         setError(t('pinMismatch'));
@@ -63,7 +74,6 @@ export default function PINScreen({ onUnlock, mode, onPINCreated }: PINScreenPro
       onPINCreated?.(pin);
       return;
     }
-
     const success = await unlockApp(currentPin);
     if (success) {
       onUnlock();
@@ -89,31 +99,48 @@ export default function PINScreen({ onUnlock, mode, onPINCreated }: PINScreenPro
   useEffect(() => {
     const current = mode === 'confirm' ? confirmPin : pin;
     if (current.length === 6) {
-      const timer = setTimeout(handleSubmit, 300);
+      const timer = setTimeout(handleSubmit, 400);
       return () => clearTimeout(timer);
     }
   }, [pin, confirmPin]);
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key >= '0' && e.key <= '9') {
+      e.preventDefault();
+      handleDigit(e.key);
+    } else if (e.key === 'Backspace') {
+      e.preventDefault();
+      handleBackspace();
+    } else if (e.key === 'Enter') {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
   const currentPin = mode === 'confirm' ? confirmPin : pin;
   const title = mode === 'unlock' ? t('enterPIN') : mode === 'create' ? t('createPIN') : t('confirmPIN');
+  const isComplete = currentPin.length === 6;
 
   return (
-    <div className="min-h-screen bg-navy-900 flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-navy-900 flex flex-col items-center justify-center p-6" onClick={() => inputRef.current?.focus()}>
       <div className="w-full max-w-sm">
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-center mb-6">
           <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center">
             <Lock className="text-white" size={32} />
           </div>
         </div>
-        
+
         <h1 className="text-white text-2xl font-bold text-center mb-2">{title}</h1>
-        <p className="text-white/60 text-center text-sm mb-8">
+        <p className="text-white/60 text-center text-sm mb-2">
           {mode === 'unlock' ? t('enterToContinue') : t('pinTooShort')}
+        </p>
+        <p className="text-white/40 text-center text-xs mb-6">
+          {currentPin.length} / 6 digits
         </p>
 
         {error && (
-          <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-3 mb-6 text-center">
-            <p className="text-red-300 text-sm">{error}</p>
+          <div className="bg-red-500/20 border border-red-500/40 rounded-lg p-3 mb-6 text-center animate-pulse">
+            <p className="text-red-300 text-sm font-medium">{error}</p>
           </div>
         )}
 
@@ -121,9 +148,9 @@ export default function PINScreen({ onUnlock, mode, onPINCreated }: PINScreenPro
           {[0, 1, 2, 3, 4, 5].map(i => (
             <div
               key={i}
-              className={`w-4 h-4 rounded-full border-2 transition-all ${
-                i < currentPin.length 
-                  ? 'bg-white border-white' 
+              className={`w-4 h-4 rounded-full border-2 transition-all duration-200 ${
+                i < currentPin.length
+                  ? 'bg-white border-white scale-110'
                   : 'border-white/40'
               }`}
             />
@@ -135,10 +162,12 @@ export default function PINScreen({ onUnlock, mode, onPINCreated }: PINScreenPro
           type={showPin ? 'text' : 'password'}
           value={currentPin}
           onChange={() => {}}
+          onKeyDown={handleKeyDown}
           className="sr-only"
           maxLength={6}
           inputMode="numeric"
           pattern="[0-9]*"
+          autoFocus
         />
 
         <div className="grid grid-cols-3 gap-4 mb-6">
@@ -146,7 +175,12 @@ export default function PINScreen({ onUnlock, mode, onPINCreated }: PINScreenPro
             <button
               key={digit}
               onClick={() => handleDigit(digit)}
-              className="aspect-square bg-white/10 hover:bg-white/20 rounded-xl text-white text-2xl font-semibold transition-colors active:scale-95"
+              className={`aspect-square rounded-xl text-white text-2xl font-semibold transition-all duration-100 active:scale-90 ${
+                pressedKey === digit
+                  ? 'bg-white/30 scale-90'
+                  : 'bg-white/10 hover:bg-white/20'
+              }`}
+              aria-label={`Digit ${digit}`}
             >
               {digit}
             </button>
@@ -154,31 +188,60 @@ export default function PINScreen({ onUnlock, mode, onPINCreated }: PINScreenPro
           <button
             onClick={() => setShowPin(!showPin)}
             className="aspect-square bg-white/5 hover:bg-white/10 rounded-xl text-white/60 flex items-center justify-center transition-colors"
+            aria-label={showPin ? 'Hide PIN' : 'Show PIN'}
           >
             {showPin ? <EyeOff size={20} /> : <Eye size={20} />}
           </button>
           <button
             onClick={() => handleDigit('0')}
-            className="aspect-square bg-white/10 hover:bg-white/20 rounded-xl text-white text-2xl font-semibold transition-colors active:scale-95"
+            className={`aspect-square rounded-xl text-white text-2xl font-semibold transition-all duration-100 active:scale-90 ${
+              pressedKey === '0'
+                ? 'bg-white/30 scale-90'
+                : 'bg-white/10 hover:bg-white/20'
+            }`}
+            aria-label="Digit 0"
           >
             0
           </button>
           <button
             onClick={handleBackspace}
-            className="aspect-square bg-white/5 hover:bg-white/10 rounded-xl text-white/60 flex items-center justify-center transition-colors"
+            className={`aspect-square rounded-xl text-white/60 flex items-center justify-center transition-all duration-100 ${
+              pressedKey === 'backspace'
+                ? 'bg-white/20 scale-90'
+                : 'bg-white/5 hover:bg-white/10'
+            }`}
+            aria-label="Backspace"
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
-              <line x1="18" y1="9" x2="12" y2="15" />
-              <line x1="12" y1="9" x2="18" y2="15" />
-            </svg>
+            <Delete size={20} />
           </button>
         </div>
+
+        <button
+          onClick={handleSubmit}
+          disabled={!isComplete}
+          className={`w-full py-4 rounded-xl font-semibold text-lg flex items-center justify-center gap-2 transition-all duration-200 ${
+            isComplete
+              ? 'bg-white text-navy-900 hover:bg-white/90 active:scale-[0.98] shadow-lg'
+              : 'bg-white/10 text-white/40 cursor-not-allowed'
+          }`}
+        >
+          {isComplete ? (
+            <>
+              {mode === 'unlock' ? t('unlock') : t('next')}
+              <ArrowRight size={20} />
+            </>
+          ) : (
+            <>
+              {t('enterPIN')}
+              <span className="text-sm opacity-60">({6 - currentPin.length} more)</span>
+            </>
+          )}
+        </button>
 
         {mode === 'unlock' && biometricAvailable && (
           <button
             onClick={handleBiometric}
-            className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl transition-colors"
+            className="w-full flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 text-white py-3 rounded-xl transition-colors mt-4"
           >
             <Fingerprint size={20} />
             <span className="text-sm font-medium">{t('useBiometric')}</span>
