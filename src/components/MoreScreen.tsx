@@ -1,12 +1,11 @@
 import { t } from '../utils/i18n';
-import { ArrowLeft, Settings, Shield, FileText, HelpCircle } from 'lucide-react';
+import { ArrowLeft, Settings, Shield, FileText } from 'lucide-react';
 
 export default function MoreScreen({ onBack, onNavigate }: { onBack: () => void; onNavigate: (s: string) => void }) {
   const items = [
     { id: 'settings', title: t('settings'), icon: Settings, desc: t('language') + ', ' + t('theme') + ', ' + t('security') },
     { id: 'privacy', title: t('privacy'), icon: Shield, desc: t('dataLocal') },
     { id: 'report', title: t('report'), icon: FileText, desc: t('reportGenerated') },
-    { id: 'help', title: t('help'), icon: HelpCircle, desc: t('about') },
   ];
 
   return (
