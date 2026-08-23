@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useApp } from '../utils/store';
 import { t } from '../utils/i18n';
 import { formatIndianCurrency } from '../utils/calculations';
-import { calculateNetWorth, calculateCashFlow, calculateFIRE, calculateFinancialHealth } from '../utils/calculations';
+import { calculateNetWorth, calculateCashFlow, calculateFIRE, calculateFinancialHealth, calculateGoal } from '../utils/calculations';
 import { Wallet, TrendingUp, TrendingDown, PiggyBank, Target, Shield, Lock, Umbrella } from 'lucide-react';
 
 export default function Dashboard({ onNavigate, onLock }: { onNavigate: (s: string) => void; onLock: () => void }) {
@@ -85,7 +85,7 @@ export default function Dashboard({ onNavigate, onLock }: { onNavigate: (s: stri
         <h3 className="font-bold text-navy-900 mb-4">{t('amIOnTrack')}</h3>
         <div className="space-y-4">
           {data.goals.slice(0, 3).map(goal => {
-            const calc = { progress: 0, status: 'red' as string, futureCost: 0, projectedCorpus: 0 };
+            const calc = calculateGoal(goal);
             return (
               <div key={goal.id} className="flex items-center gap-3">
                 <div className={`w-2 h-2 rounded-full ${calc.status === 'green' ? 'bg-green-500' : calc.status === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'}`} />
