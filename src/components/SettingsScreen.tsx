@@ -52,7 +52,7 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
           <div className="flex-1">
             <p className="font-medium text-navy-900">{t('changePIN')}</p>
           </div>
-          <button className="text-sm text-navy-900 font-medium bg-gray-100 px-3 py-1.5 rounded-lg">{t('change')}</button>
+          <button onClick={() => alert('Change PIN - Coming Soon')} className="text-sm text-navy-900 font-medium bg-gray-100 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors">{t('change')}</button>
         </div>
 
         <div className="p-4 border-b border-gray-100 flex items-center gap-3">
@@ -68,7 +68,7 @@ export default function SettingsScreen({ onBack }: { onBack: () => void }) {
           <div className="flex-1">
             <p className="font-medium text-navy-900">{t('restoreBackup')}</p>
           </div>
-          <button className="text-sm text-navy-900 font-medium bg-gray-100 px-3 py-1.5 rounded-lg">{t('import')}</button>
+          <button onClick={() => alert('Restore Backup - Coming Soon')} className="text-sm text-navy-900 font-medium bg-gray-100 px-3 py-1.5 rounded-lg hover:bg-gray-200 transition-colors">{t('import')}</button>
         </div>
       </div>
 
