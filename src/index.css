@@ -89,3 +89,18 @@ body {
   transform: rotate(-90deg);
   transform-origin: 50% 50%;
 }
+
+@layer utilities {
+  .card-hover {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .card-hover:active {
+    transform: scale(0.98);
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
