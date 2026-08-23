@@ -19,7 +19,7 @@ export default function PrivacyScreen({ onBack }: { onBack: () => void }) {
       </div>
 
       <div className="bg-navy-900 rounded-2xl p-6 text-white text-center">
-        <Shield className="mx-auto mb-3 text-gold-400" size={40} />
+        <Shield className="mx-auto mb-3 text-amber-400" size={40} />
         <h2 className="text-xl font-bold mb-2">{t('privacyNotice')}</h2>
         <p className="text-white/70 text-sm">{t('yourDataStays')}</p>
       </div>
