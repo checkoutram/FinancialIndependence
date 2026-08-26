@@ -179,9 +179,11 @@ export interface FIREInputs {
 export interface FIREResult {
   annualRetirementExpenses: number;
   fireNumber: number;
+  currentFireNumber: number; // Simple 4% rule, no inflation
   projectedCorpus: number;
   corpusGap: number;
-  fireProgress: number;
+  fireProgress: number; // Based on projected corpus
+  currentFireProgress: number; // Based on current investments only
   estimatedFireAge: number;
   yearsToFire: number;
 }
