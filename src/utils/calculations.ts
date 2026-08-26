@@ -222,7 +222,9 @@ export function calculateCashFlow(
   const monthlyExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const monthlyEMIs = liabilities.reduce((sum, l) => sum + l.emi, 0);
   
-  const monthlySurplus = monthlyIncome - monthlyExpenses - monthlyEMIs;
+  // Monthly surplus = Income - Expenses (EMI shown separately, not deducted from surplus)
+  const monthlySurplus = monthlyIncome - monthlyExpenses;
+  const monthlyTotalOutflows = monthlyExpenses + monthlyEMIs;
   const annualSavings = monthlySurplus * 12;
   const savingsRate = monthlyIncome > 0 ? (monthlySurplus / monthlyIncome) * 100 : 0;
   
@@ -341,12 +343,18 @@ export function calculateFIRE(inputs: FIREInputs): FIREResult {
     }
   }
   
+  // Current FIRE number (simple 4% rule, no inflation)
+  const currentFireNumber = inputs.monthlyExpenses * 12 / inputs.withdrawalRate;
+  const currentFireProgress = currentFireNumber > 0 ? Math.min(100, (inputs.currentInvestments / currentFireNumber) * 100) : 0;
+  
   return {
     annualRetirementExpenses: Math.round(annualRetirementExpenses),
     fireNumber: Math.round(fireNumber),
+    currentFireNumber: Math.round(currentFireNumber),
     projectedCorpus: Math.round(projectedCorpus),
     corpusGap: Math.round(corpusGap),
     fireProgress: Math.round(fireProgress * 10) / 10,
+    currentFireProgress: Math.round(currentFireProgress * 10) / 10,
     estimatedFireAge,
     yearsToFire
   };
