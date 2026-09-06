@@ -1,152 +1,87 @@
-import { useState, useEffect, useCallback } from 'react';
-import { AppProvider, useApp } from './utils/store';
-import { t } from './utils/i18n';
-import PINScreen from './components/PINScreen';
-import WelcomeScreen from './components/WelcomeScreen';
-import OnboardingFlow from './components/OnboardingFlow';
-import Dashboard from './components/Dashboard';
-import GoalsScreen from './components/GoalsScreen';
-import FIREScreen from './components/FIREScreen';
-import PlanningScreen from './components/PlanningScreen';
-import MoreScreen from './components/MoreScreen';
-import SettingsScreen from './components/SettingsScreen';
-import PrivacyScreen from './components/PrivacyScreen';
-import ReportScreen from './components/ReportScreen';
-import { Home, Target, Flame, Calculator, MoreHorizontal } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { StoreProvider, useStore } from './utils/store';
+import { Welcome, PinScreen } from './components/Pin';
+import Overview from './screens/Overview';
+import Inputs from './screens/Inputs';
+import Assets from './screens/Assets';
+import Goals from './screens/Goals';
+import Projections from './screens/Projections';
+import FireTypes from './screens/FireTypes';
+import Validate from './screens/Validate';
+import { LayoutDashboard, ClipboardList, Scale, Target, LineChart, Flame, FlaskConical } from 'lucide-react';
 
-function AppContent() {
-  const { isSetup, isLocked, isLoading, data, lockApp } = useApp();
-  const [screen, setScreen] = useState<'welcome' | 'onboarding' | 'dashboard' | 'goals' | 'fire' | 'planning' | 'more' | 'settings' | 'privacy' | 'report'>('welcome');
-  const [showLock, setShowLock] = useState(false);
+type Screen = 'overview' | 'inputs' | 'assets' | 'goals' | 'projections' | 'firetypes' | 'validate';
+
+const NAV: Array<{ key: Screen; label: string; icon: typeof Flame }> = [
+  { key: 'overview', label: 'Home', icon: LayoutDashboard },
+  { key: 'inputs', label: 'Inputs', icon: ClipboardList },
+  { key: 'assets', label: 'Assets', icon: Scale },
+  { key: 'goals', label: 'Goals', icon: Target },
+  { key: 'projections', label: 'Project', icon: LineChart },
+  { key: 'firetypes', label: 'FIRE', icon: Flame },
+  { key: 'validate', label: 'Validate', icon: FlaskConical },
+];
+
+function Shell() {
+  const { isSetup, locked, loading, data } = useStore();
+  const [screen, setScreen] = useState<Screen>('overview');
+  const [phase, setPhase] = useState<'welcome' | 'pin-setup' | 'app'>('welcome');
 
   useEffect(() => {
-    if (!isSetup && !isLoading) {
-      setScreen('welcome');
-    } else if (isSetup && !isLocked && data) {
-      setScreen(data.onboardingComplete ? 'dashboard' : 'onboarding');
-    }
-  }, [isSetup, isLocked, isLoading, data]);
+    if (!loading && !isSetup && phase === 'app') setPhase('welcome');
+  }, [loading, isSetup, phase]);
 
-  useEffect(() => {
-    if (isLocked && isSetup) {
-      setShowLock(true);
-    }
-  }, [isLocked, isSetup]);
-
-  const handleLock = useCallback(() => {
-    lockApp();
-    setShowLock(true);
-  }, [lockApp]);
-
-  const handleUnlock = useCallback(() => {
-    setShowLock(false);
-    if (data?.onboardingComplete) {
-      setScreen('dashboard');
-    } else {
-      setScreen('onboarding');
-    }
-  }, [data]);
-
-  const handleNav = useCallback((s: string) => {
-    setScreen(s as any);
-  }, []);
-
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-surface flex items-center justify-center">
-        <div className="text-navy-900 text-lg font-medium">{t('loading')}</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--bg)' }}>
+        <Flame size={32} className="text-amber animate-pulse" />
       </div>
     );
   }
 
-  if (showLock) {
-    return <PINScreen onUnlock={handleUnlock} mode="unlock" />;
-  }
-
   if (!isSetup) {
-    if (screen === 'welcome') return <WelcomeScreen onStart={() => setScreen('onboarding')} />;
-    return <OnboardingFlow onComplete={() => setScreen('dashboard')} />;
+    if (phase === 'welcome') return <Welcome onStart={() => setPhase('pin-setup')} />;
+    return <PinScreen mode="setup" onDone={() => setPhase('app')} />;
   }
 
-  if (!data) {
-    return <PINScreen onUnlock={handleUnlock} mode="unlock" />;
+  if (locked || !data) {
+    return <PinScreen mode="unlock" onDone={() => {}} />;
   }
-
-  if (!data.onboardingComplete) {
-    return <OnboardingFlow onComplete={() => setScreen('dashboard')} />;
-  }
-
-  const renderScreen = () => {
-    switch (screen) {
-      case 'dashboard': return <Dashboard onNavigate={handleNav} onLock={handleLock} />;
-      case 'goals': return <GoalsScreen onBack={() => setScreen('dashboard')} />;
-      case 'fire': return <FIREScreen onBack={() => setScreen('dashboard')} />;
-      case 'planning': return <PlanningScreen onBack={() => setScreen('dashboard')} onNavigate={handleNav} />;
-      case 'more': return <MoreScreen onBack={() => setScreen('dashboard')} onNavigate={handleNav} />;
-      case 'settings': return <SettingsScreen onBack={() => setScreen('more')} />;
-      case 'privacy': return <PrivacyScreen onBack={() => setScreen('more')} />;
-      case 'report': return <ReportScreen onBack={() => setScreen('more')} />;
-      default: return <Dashboard onNavigate={handleNav} onLock={handleLock} />;
-    }
-  };
-
-  const isMainScreen = ['dashboard', 'goals', 'fire', 'planning', 'more'].includes(screen);
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
-      <div className="flex-1 overflow-auto">
-        {renderScreen()}
+    <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
+      <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+        <div className="max-w-lg mx-auto">
+          {screen === 'overview' && <Overview go={(s) => setScreen(s as Screen)} />}
+          {screen === 'inputs' && <Inputs />}
+          {screen === 'assets' && <Assets />}
+          {screen === 'goals' && <Goals />}
+          {screen === 'projections' && <Projections />}
+          {screen === 'firetypes' && <FireTypes />}
+          {screen === 'validate' && <Validate />}
+        </div>
       </div>
-      
-      {isMainScreen && (
-        <nav className="bg-white border-t border-gray-200 px-4 py-2 flex justify-around items-center sticky bottom-0 z-50">
-          <button 
-            onClick={() => setScreen('dashboard')}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${screen === 'dashboard' ? 'text-navy-900' : 'text-gray-400'}`}
-          >
-            <Home size={20} />
-            <span className="text-[10px] font-medium">{t('home')}</span>
-          </button>
-          <button 
-            onClick={() => setScreen('goals')}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${screen === 'goals' ? 'text-navy-900' : 'text-gray-400'}`}
-          >
-            <Target size={20} />
-            <span className="text-[10px] font-medium">{t('goals')}</span>
-          </button>
-          <button 
-            onClick={() => setScreen('fire')}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${screen === 'fire' ? 'text-navy-900' : 'text-gray-400'}`}
-          >
-            <Flame size={20} />
-            <span className="text-[10px] font-medium">{t('fire')}</span>
-          </button>
-          <button 
-            onClick={() => setScreen('planning')}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${screen === 'planning' ? 'text-navy-900' : 'text-gray-400'}`}
-          >
-            <Calculator size={20} />
-            <span className="text-[10px] font-medium">{t('planning')}</span>
-          </button>
-          <button 
-            onClick={() => setScreen('more')}
-            className={`flex flex-col items-center gap-1 p-2 rounded-lg transition-colors ${screen === 'more' ? 'text-navy-900' : 'text-gray-400'}`}
-          >
-            <MoreHorizontal size={20} />
-            <span className="text-[10px] font-medium">{t('more')}</span>
-          </button>
-        </nav>
-      )}
+
+      <nav className="no-print sticky bottom-0 z-50 border-t" style={{ background: 'var(--nav-bg)', borderColor: 'var(--card-border)', backdropFilter: 'blur(16px)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
+        <div className="max-w-lg mx-auto flex justify-around">
+          {NAV.map(n => (
+            <button key={n.key} onClick={() => setScreen(n.key)}
+              className="flex flex-col items-center gap-0.5 py-2 px-1.5 transition-colors"
+              style={{ color: screen === n.key ? 'var(--accent)' : 'var(--text-faint)' }}>
+              <n.icon size={19} />
+              <span className="text-[9px] font-semibold">{n.label}</span>
+            </button>
+          ))}
+        </div>
+      </nav>
     </div>
   );
 }
 
-function App() {
+export default function App() {
   return (
-    <AppProvider>
-      <AppContent />
-    </AppProvider>
+    <StoreProvider>
+      <Shell />
+    </StoreProvider>
   );
 }
-
-export default App;

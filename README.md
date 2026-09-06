@@ -1,32 +1,43 @@
-# React + TypeScript + Vite
+# FIRE — Financial Independence Tracker
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+A privacy-first, offline FIRE (Financial Independence, Retire Early) planner.
+React + TypeScript + Vite + Tailwind CSS 4 + Chart.js, wrapped in Capacitor for Android.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **PIN-encrypted local storage** — all data is encrypted with AES-256-GCM (key derived
+  from your PIN via PBKDF2) and never leaves the device. No account, no cloud.
+- **7 screens**: Overview (FIRE status, gap analysis, allocation, milestones, net worth,
+  cash flow), Inputs (family, employment, cash flow, assumptions), Assets & Liabilities,
+  Goals (children education/marriage, retirement, others), Projections (tabbed charts +
+  year-by-year tables), FIRE Types (Lean/Coast/Barista/Slow/Full/Chubby/Fat), and
+  Calculation Validation against the Excel planning template (7 automated checks).
+- **Multi-currency** — track INR and USD side by side with a configurable FX rate.
+- **Country profiles** — India, USA, Canada, Australia, UK, UAE set currency,
+  default returns and account labels.
+- **Excel-faithful engine** — glide paths, SIP step-ups, first-year partial months and
+  withdrawal schedules replicate the source workbook exactly (see the Validate tab).
+- Dark theme by default with a light toggle; mobile-first; print-friendly.
 
-## React Compiler
+## Data entry
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Nothing is pre-filled. Every input includes an explanation and an example
+(e.g. "Monthly take-home — net pay credited to your bank. Example: 6838 (USD).").
+Financial assets can be mapped to Retirement or Children goals so projections know
+which corpus funds which goal.
 
-## Expanding the Oxlint configuration
+## Development
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev        # local dev server
+npm run build      # production build to dist/
+npx cap sync android
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+## Android APK
+
+Every push to `main` runs `.github/workflows/build-apk.yml`, which builds the web app,
+syncs Capacitor and produces `app-debug.apk` as a workflow artifact (`finplan-apk`).
+
+The web build also deploys to GitHub Pages via `.github/workflows/deploy-pages.yml`.
