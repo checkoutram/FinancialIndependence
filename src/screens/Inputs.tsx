@@ -132,7 +132,7 @@ export default function Inputs() {
         ))}
         <button className="btn-ghost w-full" onClick={() => update(prev => ({
           ...prev,
-          cashFlow: { ...prev.cashFlow, expenses: [...prev.cashFlow.expenses, { id: nid(), name: '', amount: null, currency: 'USD', frequency: 'monthly' }] },
+          cashFlow: { ...prev.cashFlow, expenses: [...prev.cashFlow.expenses, { id: nid(), name: '', amount: null, currency: c.baseCurrency, frequency: 'monthly' }] },
         }))}><Plus size={14} /> Add expense</button>
 
         <Field label={`Emergency fund target (${c.currencySymbol})`} hint="Rule of thumb: 6–12 months of essential expenses. Example: 30000.">
