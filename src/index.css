@@ -127,11 +127,11 @@ body {
 
 /* ============ PIN dots ============ */
 .pin-dot {
-  width: 16px; height: 16px; border-radius: 50%;
+  width: 14px; height: 14px; border-radius: 50%;
   border: 2px solid var(--accent);
   transition: all 0.2s;
 }
-.pin-dot.filled { background: var(--accent); }
+.pin-dot.filled { background: var(--accent); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 50%, transparent); }
 
 /* ============ Scrollbar ============ */
 ::-webkit-scrollbar { width: 6px; height: 6px; }

@@ -76,12 +76,12 @@ export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: 
       <h2 className="text-xl font-bold mb-1">{title}</h2>
       <p className="text-xs text-dim mb-6 text-center max-w-[240px]">{subtitle}</p>
 
-      <div className="flex gap-3 mb-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <div key={i} className={`pin-dot ${i < pin.length ? 'filled' : ''}`} style={i >= 4 && pin.length <= 4 ? { opacity: 0.25 } : {}} />
-        ))}
+      <div className="flex items-center justify-center gap-3 mb-1" style={{ minHeight: 18 }}>
+        {pin.length === 0
+          ? <span className="text-xs" style={{ color: 'var(--text-faint)' }}>4–6 digits</span>
+          : Array.from({ length: pin.length }).map((_, i) => <div key={i} className="pin-dot filled" />)}
       </div>
-      {error && <p className="text-red text-xs mb-2">{error}</p>}
+      <div style={{ minHeight: 20 }}>{error && <p className="text-red text-xs animate-fade-in">{error}</p>}</div>
 
       <div className="grid grid-cols-3 gap-3 w-64 mt-4">
         {['1','2','3','4','5','6','7','8','9','','0','⌫'].map(k => (

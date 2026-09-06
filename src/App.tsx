@@ -7,10 +7,9 @@ import Assets from './screens/Assets';
 import Goals from './screens/Goals';
 import Projections from './screens/Projections';
 import FireTypes from './screens/FireTypes';
-import Validate from './screens/Validate';
-import { LayoutDashboard, ClipboardList, Scale, Target, LineChart, Flame, FlaskConical } from 'lucide-react';
+import { LayoutDashboard, ClipboardList, Scale, Target, LineChart, Flame } from 'lucide-react';
 
-type Screen = 'overview' | 'inputs' | 'assets' | 'goals' | 'projections' | 'firetypes' | 'validate';
+type Screen = 'overview' | 'inputs' | 'assets' | 'goals' | 'projections' | 'firetypes';
 
 const NAV: Array<{ key: Screen; label: string; icon: typeof Flame }> = [
   { key: 'overview', label: 'Home', icon: LayoutDashboard },
@@ -19,7 +18,6 @@ const NAV: Array<{ key: Screen; label: string; icon: typeof Flame }> = [
   { key: 'goals', label: 'Goals', icon: Target },
   { key: 'projections', label: 'Project', icon: LineChart },
   { key: 'firetypes', label: 'FIRE', icon: Flame },
-  { key: 'validate', label: 'Validate', icon: FlaskConical },
 ];
 
 function Shell() {
@@ -58,7 +56,6 @@ function Shell() {
           {screen === 'goals' && <Goals />}
           {screen === 'projections' && <Projections />}
           {screen === 'firetypes' && <FireTypes />}
-          {screen === 'validate' && <Validate />}
         </div>
       </div>
 

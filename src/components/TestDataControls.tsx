@@ -1,5 +1,5 @@
 // Dev/testing helper — load or clear the full reference dataset.
-// NOTE: remove this (and the Validate tab) for the production build.
+// NOTE: remove this testing card for the production build.
 import { useState } from 'react';
 import { FlaskConical, Eraser } from 'lucide-react';
 import { useStore } from '../utils/store';
