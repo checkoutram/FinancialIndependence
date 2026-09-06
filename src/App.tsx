@@ -50,7 +50,7 @@ function Shell() {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: 'var(--bg)' }}>
-      <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex-1 overflow-y-auto" style={{ WebkitOverflowScrolling: 'touch', paddingTop: 'env(safe-area-inset-top)' }}>
         <div className="max-w-lg mx-auto">
           {screen === 'overview' && <Overview go={(s) => setScreen(s as Screen)} />}
           {screen === 'inputs' && <Inputs />}

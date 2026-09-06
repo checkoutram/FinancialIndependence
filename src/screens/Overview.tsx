@@ -23,7 +23,7 @@ export default function Overview({ go }: { go: (s: string) => void }) {
 
   if (!hasProfile && !hasIncome) {
     return (
-      <div className="p-4 pb-28 space-y-4">
+      <div className="p-4 pt-5 pb-8 space-y-4">
         <Header />
         <EmptyState
           icon={<ClipboardList size={26} />}
@@ -70,7 +70,7 @@ export default function Overview({ go }: { go: (s: string) => void }) {
     ? retRows[s.yearsToRetire - 1].closing : null;
 
   return (
-    <div className="p-4 pb-28 space-y-4 animate-fade-in">
+    <div className="p-4 pt-5 pb-8 space-y-4 animate-fade-in">
       <Header />
 
       {/* Hero status */}
@@ -105,8 +105,8 @@ export default function Overview({ go }: { go: (s: string) => void }) {
             <div className="grid grid-cols-2 gap-4 mb-3">
               <Stat label="Current monthly savings" value={fmtFull(Math.round(s.currentSavings), sym)} />
               <Stat label="Required monthly savings" value={fmtFull(Math.round(s.requiredMonthly), sym)} sub="planned SIPs for all goals" />
-              <Stat label="Monthly gap" value={s.monthlyGap != null ? fmtFull(Math.round(s.monthlyGap), sym) : '—'} tone={s.monthlyGap != null && s.monthlyGap < 0 ? 'red' : 'green'} />
-              <Stat label="Annual gap" value={s.annualGap != null ? fmtFull(Math.round(s.annualGap), sym) : '—'} tone={s.annualGap != null && s.annualGap < 0 ? 'red' : 'green'} />
+              <Stat label={s.monthlyGap != null && s.monthlyGap < 0 ? 'Monthly shortfall' : 'Monthly surplus'} value={s.monthlyGap != null ? fmtFull(Math.abs(Math.round(s.monthlyGap)), sym) : '—'} tone={s.monthlyGap != null && s.monthlyGap < 0 ? 'red' : 'green'} />
+              <Stat label={s.annualGap != null && s.annualGap < 0 ? 'Annual shortfall' : 'Annual surplus'} value={s.annualGap != null ? fmtFull(Math.abs(Math.round(s.annualGap)), sym) : '—'} tone={s.annualGap != null && s.annualGap < 0 ? 'red' : 'green'} />
             </div>
             <p className="text-xs text-dim leading-relaxed">
               {s.monthlyGap == null && 'Enter income, expenses and goal SIPs to see your gap.'}

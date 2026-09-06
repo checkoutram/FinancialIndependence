@@ -26,7 +26,7 @@ export default function Goals() {
   };
 
   return (
-    <div className="p-4 pb-28 space-y-4 animate-fade-in">
+    <div className="p-4 pt-5 pb-8 space-y-4 animate-fade-in">
       <SectionHeader title="Goals" subtitle="What are you saving for? Costs are in today's money — the planner inflates them to the goal year." />
 
       {/* Children */}

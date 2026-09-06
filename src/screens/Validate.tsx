@@ -10,7 +10,7 @@ export default function Validate() {
   const passed = results.filter(r => r.pass).length;
 
   return (
-    <div className="p-4 pb-28 space-y-4 animate-fade-in">
+    <div className="p-4 pt-5 pb-8 space-y-4 animate-fade-in">
       <SectionHeader title="Calculation Validation" subtitle="The projection engine is tested against the Excel planning template (source of truth)." />
 
       <Card className="flex items-center gap-3">

@@ -59,7 +59,7 @@ export default function Projections() {
   }
 
   return (
-    <div className="p-4 pb-28 space-y-4 animate-fade-in">
+    <div className="p-4 pt-5 pb-8 space-y-4 animate-fade-in">
       <SectionHeader title="Projections" subtitle="Year-by-year compounding with a glide path that de-risks as the goal nears." />
       <div className="flex gap-2 overflow-x-auto no-print" style={{ scrollbarWidth: 'none' }}>
         {tabs.map(t => (
@@ -87,10 +87,16 @@ function PlanView({ rows, symbol, currency, title, note }: {
   rows: ProjectionRow[]; symbol: string; currency: 'INR' | 'USD'; title: string; note: string;
 }) {
   const labels = rows.map(r => r.age != null ? `${r.year} (${r.age})` : r.year);
+  const exhausted = rows.find(r => r.closing < 0);
   return (
     <>
       <Card>
         <CardTitle>{title}</CardTitle>
+        {exhausted && (
+          <div className="mb-3 px-3 py-2 rounded-lg text-xs font-semibold" style={{ background: 'color-mix(in srgb, var(--red) 12%, transparent)', color: 'var(--red)', border: '1px solid color-mix(in srgb, var(--red) 30%, transparent)' }}>
+            ⚠ Corpus runs out in {exhausted.year}{exhausted.age != null ? ` (age ${exhausted.age})` : ''} under these assumptions. Increase SIPs, lower expenses, or extend the working years.
+          </div>
+        )}
         <div style={{ height: 220 }}>
           <LineChart labels={labels} series={[
             { label: 'Corpus (closing)', data: rows.map(r => r.closing), color: '#38bdf8', fill: true },

@@ -14,7 +14,7 @@ export default function FireTypes() {
 
   if (s.fireNumber == null) {
     return (
-      <div className="p-4 pb-28 space-y-4">
+      <div className="p-4 pt-5 pb-8 space-y-4">
         <SectionHeader title="FIRE Types" />
         <EmptyState icon={<Flame size={26} />} title="FIRE number needed"
           body="The 7 FIRE variants are multiples of your FIRE number. Set your date of birth, retirement age and retirement monthly expense (Inputs + Goals) to compute it." />
@@ -38,7 +38,7 @@ export default function FireTypes() {
   });
 
   return (
-    <div className="p-4 pb-28 space-y-4 animate-fade-in">
+    <div className="p-4 pt-5 pb-8 space-y-4 animate-fade-in">
       <SectionHeader title="FIRE Types" subtitle={`Your full FIRE number is ${fmt(s.fireNumber, c.currencySymbol)} — every variant scales from it.`} />
 
       <div className="grid grid-cols-1 gap-3">

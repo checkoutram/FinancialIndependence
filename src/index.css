@@ -159,3 +159,8 @@ body {
   body { background: white; color: black; }
   .card { border: 1px solid #ddd; box-shadow: none; background: white; }
 }
+
+/* Mobile viewport height fix (browser chrome) */
+@supports (height: 100dvh) {
+  .min-h-screen { min-height: 100dvh; }
+}

@@ -5,7 +5,7 @@ import { useStore } from '../utils/store';
 /** Welcome screen for first-time users — explains the app, no data yet. */
 export function Welcome({ onStart }: { onStart: () => void }) {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center" style={{ background: 'linear-gradient(160deg, var(--bg) 0%, var(--bg-soft) 100%)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center" style={{ background: 'linear-gradient(160deg, var(--bg) 0%, var(--bg-soft) 100%)', paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
       <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6 animate-fade-in"
         style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
         <Flame size={40} color="#fff" />
@@ -69,7 +69,7 @@ export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: 
     : 'Your data is encrypted on this device';
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'var(--bg)' }}>
+    <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'var(--bg)', paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
       <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
         <Flame size={26} color="#fff" />
       </div>
@@ -96,7 +96,8 @@ export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: 
       </div>
 
       <button
-        className="btn-primary w-64 mt-5"
+        className="btn-primary mt-5"
+        style={{ width: '16rem', maxWidth: '100%' }}
         disabled={pin.length < 4}
         onClick={() => submit(pin)}>
         {mode === 'setup' ? (confirm === null ? 'Continue' : 'Confirm PIN') : 'Unlock'}

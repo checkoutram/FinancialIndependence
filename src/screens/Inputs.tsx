@@ -31,7 +31,7 @@ export default function Inputs() {
   };
 
   return (
-    <div className="p-4 pb-28 space-y-3 animate-fade-in">
+    <div className="p-4 pt-5 pb-8 space-y-3 animate-fade-in">
       <SectionHeader title="Inputs" subtitle="Everything the planner needs. Each field explains what to enter — your data stays encrypted on this device." />
 
       {/* Country */}

@@ -21,7 +21,7 @@ export default function Assets() {
   const empty = d.realAssets.length === 0 && d.financialAssets.length === 0 && d.liabilities.length === 0;
 
   return (
-    <div className="p-4 pb-28 space-y-4 animate-fade-in">
+    <div className="p-4 pt-5 pb-8 space-y-4 animate-fade-in">
       <SectionHeader title="Assets & Liabilities" subtitle="Everything you own and owe. Amounts in either currency are converted at your FX rate." />
 
       {empty && (
