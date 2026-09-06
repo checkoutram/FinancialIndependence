@@ -35,6 +35,10 @@ interface NumProps {
   min?: number;
 }
 
+/** Convert a stored decimal rate (0.07) to a display percent (7) without floating-point artifacts like 7.000000000000001. */
+export const pct = (r: number | null | undefined): number | null =>
+  r == null ? null : Number((r * 100).toPrecision(12));
+
 /** Numeric input that stays empty (no fake zeros) until the user types. */
 export function Num({ value, onChange, placeholder, step = 'any', prefix, suffix, min }: NumProps) {
   return (

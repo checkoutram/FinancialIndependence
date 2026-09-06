@@ -1,7 +1,7 @@
 // Screen 3 — Assets & Liabilities
 import { useStore } from '../utils/store';
 import type { FinancialAsset, RealAsset, LiabilityItem } from '../types';
-import { Card, CardTitle, Field, Num, Text, InfoBox, SectionHeader, RowActions, CurrencyToggle, Select, EmptyState } from '../components/ui';
+import { Card, CardTitle, Field, Num, pct, Text, InfoBox, SectionHeader, RowActions, CurrencyToggle, Select, EmptyState } from '../components/ui';
 import { DoughnutChart } from '../components/charts';
 import { countryOf, totalFinancialAssets, totalRealAssets, totalLiabilities, fmt, toBase } from '../utils/engine';
 import { Landmark, Home, CreditCard, Plus, Scale } from 'lucide-react';
@@ -139,7 +139,7 @@ function FinAssetRow({ asset, onChange, onDelete }: { asset: FinancialAsset; onC
         <CurrencyToggle value={asset.currency} onChange={v => onChange({ ...asset, currency: v })} />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <Num value={asset.expectedReturn != null ? asset.expectedReturn * 100 : null} suffix="%"
+        <Num value={pct(asset.expectedReturn)} suffix="%"
           onChange={v => onChange({ ...asset, expectedReturn: v != null ? v / 100 : null })} placeholder="Return %/yr" />
         <Num value={asset.monthlyContribution} onChange={v => onChange({ ...asset, monthlyContribution: v })} placeholder="Monthly SIP" />
       </div>
@@ -164,7 +164,7 @@ function LiabilityRow({ item, onChange, onDelete }: { item: LiabilityItem; onCha
         <CurrencyToggle value={item.currency} onChange={v => onChange({ ...item, currency: v })} />
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <Num value={item.interestRate != null ? item.interestRate * 100 : null} suffix="%"
+        <Num value={pct(item.interestRate)} suffix="%"
           onChange={v => onChange({ ...item, interestRate: v != null ? v / 100 : null })} placeholder="Interest %" />
         <Num value={item.emi} onChange={v => onChange({ ...item, emi: v })} placeholder="Monthly EMI" />
       </div>

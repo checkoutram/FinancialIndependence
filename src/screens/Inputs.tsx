@@ -1,7 +1,7 @@
 // Screen 2 — Profile & Inputs (collapsible sections with guidance)
 import { useStore } from '../utils/store';
 import { COUNTRIES, type Employment, type ExpenseItem, type Person } from '../types';
-import { Accordion, Field, Num, Text, DateInput, Select, InfoBox, SectionHeader, RowActions, CurrencyToggle } from '../components/ui';
+import { Accordion, Field, Num, pct, Text, DateInput, Select, InfoBox, SectionHeader, RowActions, CurrencyToggle } from '../components/ui';
 import { TestDataControls } from '../components/TestDataControls';
 import { countryOf, fmtFull } from '../utils/engine';
 import { Users, Briefcase, Wallet, SlidersHorizontal, Globe, Plus } from 'lucide-react';
@@ -152,31 +152,31 @@ export default function Inputs() {
             <Num value={d.assumptions.fxRate} onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, fxRate: v || 1 } }))} placeholder="e.g. 90" />
           </Field>
           <Field label="Withdrawal rate" hint="Classic rule: 4%. Conservative: 3.5%.">
-            <Num value={d.assumptions.withdrawalRate * 100} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, withdrawalRate: (v || 4) / 100 } }))} placeholder="4" />
+            <Num value={pct(d.assumptions.withdrawalRate)} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, withdrawalRate: (v || 4) / 100 } }))} placeholder="4" />
           </Field>
           <Field label={`Equity return (${c.baseCurrency})`} hint="Long-run equity index return. Example: 10">
-            <Num value={d.assumptions.equityReturn * 100} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, equityReturn: (v || 0) / 100 } }))} placeholder="10" />
+            <Num value={pct(d.assumptions.equityReturn)} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, equityReturn: (v || 0) / 100 } }))} placeholder="10" />
           </Field>
           <Field label={`Debt return (${c.baseCurrency})`} hint="FDs, bonds, debt funds. Example: 6">
-            <Num value={d.assumptions.debtReturn * 100} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, debtReturn: (v || 0) / 100 } }))} placeholder="6" />
+            <Num value={pct(d.assumptions.debtReturn)} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, debtReturn: (v || 0) / 100 } }))} placeholder="6" />
           </Field>
           <Field label="General inflation" hint="Cost of living growth. Example: 6">
-            <Num value={d.assumptions.inflation * 100} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, inflation: (v || 0) / 100 } }))} placeholder="6" />
+            <Num value={pct(d.assumptions.inflation)} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, inflation: (v || 0) / 100 } }))} placeholder="6" />
           </Field>
           <Field label="Education inflation" hint="Education costs grow faster. Example: 9">
-            <Num value={d.assumptions.educationInflation * 100} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, educationInflation: (v || 0) / 100 } }))} placeholder="9" />
+            <Num value={pct(d.assumptions.educationInflation)} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, educationInflation: (v || 0) / 100 } }))} placeholder="9" />
           </Field>
           <Field label="SIP yearly step-up" hint="Increase investments as salary grows. Example: 5">
-            <Num value={d.assumptions.sipYearlyIncrease * 100} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, sipYearlyIncrease: (v || 0) / 100 } }))} placeholder="5" />
+            <Num value={pct(d.assumptions.sipYearlyIncrease)} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, sipYearlyIncrease: (v || 0) / 100 } }))} placeholder="5" />
           </Field>
           <Field label={`Equity return (${c.altCurrency})`} hint="For foreign-currency investments. Example: 8">
-            <Num value={d.assumptions.altEquityReturn * 100} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, altEquityReturn: (v || 0) / 100 } }))} placeholder="8" />
+            <Num value={pct(d.assumptions.altEquityReturn)} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, altEquityReturn: (v || 0) / 100 } }))} placeholder="8" />
           </Field>
           <Field label={`Debt return (${c.altCurrency})`} hint="Example: 3">
-            <Num value={d.assumptions.altDebtReturn * 100} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, altDebtReturn: (v || 0) / 100 } }))} placeholder="3" />
+            <Num value={pct(d.assumptions.altDebtReturn)} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, altDebtReturn: (v || 0) / 100 } }))} placeholder="3" />
           </Field>
           <Field label={`Education inflation (${c.altCurrency})`} hint="Example: 7">
-            <Num value={d.assumptions.altEducationInflation * 100} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, altEducationInflation: (v || 0) / 100 } }))} placeholder="7" />
+            <Num value={pct(d.assumptions.altEducationInflation)} suffix="%" onChange={v => update(prev => ({ ...prev, assumptions: { ...prev.assumptions, altEducationInflation: (v || 0) / 100 } }))} placeholder="7" />
           </Field>
         </div>
       </Accordion>
