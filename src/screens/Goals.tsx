@@ -71,7 +71,7 @@ export default function Goals() {
 
         {d.family.children.length > 0 && (
           <div className="grid grid-cols-3 gap-2 mt-3">
-            <Field label={`Children SIP (${c.currencySymbol}/mo)`} hint="e.g. 90000">
+            <Field label={`Children SIP (${c.currencySymbol}/mo)`} hint="e.g. 90000. SIPs on Children-mapped assets are added automatically.">
               <Num value={d.goals.childrenSipBase} onChange={v => update(prev => ({ ...prev, goals: { ...prev.goals, childrenSipBase: v } }))} placeholder="90000" />
             </Field>
             <Field label={`Children SIP (${c.altCurrencySymbol}/mo)`} hint="e.g. 1850">
@@ -105,7 +105,7 @@ export default function Goals() {
           <Field label={`Monthly expense in retirement (${c.currencySymbol}, today)`} hint="e.g. 140000">
             <Num value={d.goals.retirement.monthlyExpenseToday} onChange={v => update(prev => ({ ...prev, goals: { ...prev.goals, retirement: { ...prev.goals.retirement, monthlyExpenseToday: v } } }))} placeholder="e.g. 140000" />
           </Field>
-          <Field label={`Monthly investment toward retirement (${c.currencySymbol})`} hint={`Steps up ${pct(d.assumptions.sipYearlyIncrease, 0)}/yr. e.g. 47500`}>
+          <Field label={`Monthly investment toward retirement (${c.currencySymbol})`} hint={`Steps up ${pct(d.assumptions.sipYearlyIncrease, 0)}/yr. e.g. 47500. SIPs on Retirement-mapped assets (EPF/NPS etc.) are added automatically — enter only additional investment here.`}>
             <Num value={d.goals.retirement.monthlyInvestment} onChange={v => update(prev => ({ ...prev, goals: { ...prev.goals, retirement: { ...prev.goals.retirement, monthlyInvestment: v } } }))} placeholder="e.g. 47500" />
           </Field>
         </div>

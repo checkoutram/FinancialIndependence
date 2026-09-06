@@ -143,6 +143,7 @@ function FinAssetRow({ asset, onChange, onDelete }: { asset: FinancialAsset; onC
           onChange={v => onChange({ ...asset, expectedReturn: v != null ? v / 100 : null })} placeholder="Return %/yr" />
         <Num value={asset.monthlyContribution} onChange={v => onChange({ ...asset, monthlyContribution: v })} placeholder="Monthly SIP" />
       </div>
+      <p className="hint">The Monthly SIP of a mapped asset is added to that goal's projection automatically — don't repeat the same amount in the Goals tab SIP field.</p>
       <Field label="Mapped to goal" hint={`“Retirement” → retirement projection · “Children” → education corpus · “None” → general net worth. Worth in base currency: ${asset.value ? fmt(toBase(asset.value, asset.currency, data!), c.currencySymbol) : '—'}`}>
         <Select value={asset.mappedTo} onChange={v => onChange({ ...asset, mappedTo: v as FinancialAsset['mappedTo'] })}
           options={[{ value: 'none', label: 'None — general wealth' }, { value: 'retirement', label: 'Retirement' }, { value: 'children', label: 'Children goals' }]} />

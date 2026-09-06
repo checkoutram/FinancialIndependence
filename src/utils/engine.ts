@@ -11,7 +11,7 @@
 
 import type {
   FireData, FinancialAsset, RealAsset, LiabilityItem, ExpenseItem,
-  ChildGoal, Currency, CountryProfile,
+  ChildGoal, Currency, CountryProfile, GoalMapping,
 } from '../types';
 import { COUNTRIES } from '../types';
 
@@ -58,6 +58,19 @@ export function countryOf(d: FireData): CountryProfile {
 export function toBase(amount: number, currency: Currency, d: FireData): number {
   const c = countryOf(d);
   return currency === c.baseCurrency ? amount : amount * d.assumptions.fxRate;
+}
+
+/**
+ * Monthly contributions entered on goal-mapped assets (asset-level SIPs).
+ * alt === false → converted to base currency; alt === true → raw alt-currency
+ * amount (matches how children-plan start amounts treat currency); alt undefined →
+ * everything converted to base (for gap analysis).
+ */
+export function mappedAssetSip(d: FireData, mapped: GoalMapping, alt?: boolean): number {
+  const base = countryOf(d).baseCurrency;
+  return d.financialAssets
+    .filter(x => x.mappedTo === mapped && (alt === undefined || (alt ? x.currency !== base : x.currency === base)))
+    .reduce((s, x) => s + (alt === true ? (x.monthlyContribution || 0) : toBase(x.monthlyContribution || 0, x.currency, d)), 0);
 }
 
 export function ageFromDob(dob: string, atYear = new Date().getFullYear()): number | null {
@@ -269,6 +282,7 @@ export function buildChildrenPlan(d: FireData, alt: boolean, childId?: string): 
   }
 
   const sip = (alt ? g.childrenSipAlt : g.childrenSipBase) || 0;
+  const assetSip = mappedAssetSip(d, 'children', alt);
   const startAmount = (alt
     ? d.financialAssets.filter(x => x.mappedTo === 'children' && x.currency !== countryOf(d).baseCurrency)
     : d.financialAssets.filter(x => x.mappedTo === 'children' && x.currency === countryOf(d).baseCurrency)
@@ -276,7 +290,7 @@ export function buildChildrenPlan(d: FireData, alt: boolean, childId?: string): 
 
   const events = mergeEvents(kids.map(c =>
     childWithdrawalEvents(c, eduInfl, a.inflation, alt)));
-  if (!sip && !startAmount && events.size === 0) return null;
+  if (!sip && !assetSip && !startAmount && events.size === 0) return null;
 
   const horizonIdx = Math.max(1, ...[...events.keys()], 1);
   const targetIdx = Math.min(...kids.map(c => (alt ? c.ugYearsAlt : c.ugYears) || 99), 99);
@@ -289,7 +303,7 @@ export function buildChildrenPlan(d: FireData, alt: boolean, childId?: string): 
   const rows = projectPlan({
     startYear,
     startAmount: startAmount * share,
-    monthlySip: sip * share,
+    monthlySip: (sip + assetSip) * share,
     sipIncrease: alt ? a.altSipYearlyIncrease : a.sipYearlyIncrease,
     firstYearMonths: g.childrenFirstYearMonths || (alt ? 10 : 10),
     equityReturn: alt ? a.altEquityReturn : a.equityReturn,
@@ -333,7 +347,7 @@ export function buildRetirementPlan(d: FireData): ProjectionRow[] | null {
   return projectPlan({
     startYear,
     startAmount,
-    monthlySip: g.monthlyInvestment || 0,
+    monthlySip: (g.monthlyInvestment || 0) + mappedAssetSip(d, 'retirement', false),
     sipIncrease: a.sipYearlyIncrease,
     firstYearMonths: 12,
     equityReturn: a.equityReturn,
@@ -412,6 +426,8 @@ export function computeFireSummary(d: FireData): FireSummary {
   if (d.goals.childrenSipAlt) requiredMonthly += toBase(d.goals.childrenSipAlt, c.altCurrency, d);
   if (d.goals.retirement.monthlyInvestment) requiredMonthly += d.goals.retirement.monthlyInvestment;
   for (const og of d.goals.others) requiredMonthly += og.monthlyInvestment || 0;
+  // Asset-level SIPs on goal-mapped assets (e.g. EPF/NPS contributions) also fund goals
+  requiredMonthly += mappedAssetSip(d, 'retirement') + mappedAssetSip(d, 'children');
 
   const monthlyGap = requiredMonthly > 0 ? currentSavings - requiredMonthly : null;
   const annualGap = monthlyGap != null ? monthlyGap * 12 : null;
