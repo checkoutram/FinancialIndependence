@@ -85,6 +85,18 @@ export default function Overview({ go }: { go: (s: string) => void }) {
           <Stat label="Current Age" value={s.currentAge != null ? `${s.currentAge}` : '—'} sub={s.retireAge != null ? `FIRE at ${s.retireAge}` : 'set your DOB'} />
           <Stat label="Years Left" value={s.yearsToRetire != null ? `${s.yearsToRetire}` : '—'} sub={s.yearsToRetire != null ? `until age ${s.retireAge}` : ''} />
         </div>
+        {s.corpusGap != null && s.corpusGap > 0 && s.fireNumber != null && s.projectedRetirementCorpus != null && s.retireAge != null && (
+          <div className="text-sm rounded-xl p-3 space-y-1.5" style={{ background: 'color-mix(in srgb, var(--amber) 14%, transparent)' }}>
+            <p>
+              Projected corpus <b>{fmt(s.projectedRetirementCorpus, sym)}</b> at {s.retireAge} falls short of your{' '}
+              <b>{fmt(s.fireNumber, sym)}</b> FIRE number by <b className="text-amber">{fmt(s.corpusGap, sym)}</b>.
+            </p>
+            <p className="text-dim text-xs">
+              To close the gap: invest <b className="text-amber">{s.extraMonthlyNeeded != null ? `~${fmtFull(Math.ceil(s.extraMonthlyNeeded / 100) * 100, sym)}` : 'more'}/month</b> extra,
+              retire 2–3 years later, or plan a lower retirement expense.
+            </p>
+          </div>
+        )}
         {s.monthlyGap != null && s.monthlyGap < 0 && s.retireAge != null && (
           <div className="text-sm rounded-xl p-3" style={{ background: 'color-mix(in srgb, var(--red) 12%, transparent)' }}>
             You need <b className="text-red">{fmtFull(Math.abs(s.monthlyGap), sym)}</b> more per month to reach FIRE by age {s.retireAge}.

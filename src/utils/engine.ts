@@ -317,7 +317,7 @@ export function buildChildrenPlan(d: FireData, alt: boolean, childId?: string): 
   return { rows, targetIdx };
 }
 
-export function buildRetirementPlan(d: FireData): ProjectionRow[] | null {
+function retirementPlanParams(d: FireData) {
   const g = d.goals.retirement;
   const a = d.assumptions;
   if (!g.monthlyInvestment && !d.financialAssets.some(x => x.mappedTo === 'retirement')) return null;
@@ -344,20 +344,28 @@ export function buildRetirementPlan(d: FireData): ProjectionRow[] | null {
     }
   }
 
-  return projectPlan({
-    startYear,
-    startAmount,
-    monthlySip: (g.monthlyInvestment || 0) + mappedAssetSip(d, 'retirement', false),
-    sipIncrease: a.sipYearlyIncrease,
-    firstYearMonths: 12,
-    equityReturn: a.equityReturn,
-    debtReturn: a.debtReturn,
-    glide: idx => glideRetirement(startYear + idx - 1, retireYear),
-    withdrawals,
-    horizonIdx,
-    contribEndIdx: yearsToRetire,
-    birthYear,
-  });
+  return {
+    params: {
+      startYear,
+      startAmount,
+      monthlySip: (g.monthlyInvestment || 0) + mappedAssetSip(d, 'retirement', false),
+      sipIncrease: a.sipYearlyIncrease,
+      firstYearMonths: 12,
+      equityReturn: a.equityReturn,
+      debtReturn: a.debtReturn,
+      glide: idx => glideRetirement(startYear + idx - 1, retireYear),
+      withdrawals,
+      horizonIdx,
+      contribEndIdx: yearsToRetire,
+      birthYear,
+    },
+    yearsToRetire,
+  };
+}
+
+export function buildRetirementPlan(d: FireData): ProjectionRow[] | null {
+  const p = retirementPlanParams(d);
+  return p ? projectPlan(p.params) : null;
 }
 
 export function buildOtherGoalPlan(d: FireData, goalId: string): { rows: ProjectionRow[]; targetIdx: number } | null {
@@ -399,6 +407,8 @@ export interface FireSummary {
   annualGap: number | null;
   status: 'ontrack' | 'behind' | 'deficit' | 'unknown';
   projectedRetirementCorpus: number | null;
+  corpusGap: number | null;          // fireNumber - projected corpus at retire age (positive = shortfall)
+  extraMonthlyNeeded: number | null; // extra monthly SIP needed to close corpusGap by retire age
 }
 
 export function computeFireSummary(d: FireData): FireSummary {
@@ -432,23 +442,45 @@ export function computeFireSummary(d: FireData): FireSummary {
   const monthlyGap = requiredMonthly > 0 ? currentSavings - requiredMonthly : null;
   const annualGap = monthlyGap != null ? monthlyGap * 12 : null;
 
-  let status: FireSummary['status'] = 'unknown';
-  if (monthlyGap != null) {
-    if (monthlyGap >= 0) status = 'ontrack';
-    else if (Math.abs(monthlyGap) <= 0.25 * requiredMonthly) status = 'behind';
-    else status = 'deficit';
-  }
-
   const retRows = buildRetirementPlan(d);
   const projectedRetirementCorpus = retRows && yearsToRetire != null && retRows.length >= yearsToRetire
     ? retRows[yearsToRetire - 1].closing
     : null;
 
+  // Corpus vs target: how far the projected corpus at retire age is from the FIRE number,
+  // and the extra monthly SIP (with step-up, same glide path) needed to close that gap.
+  let corpusGap: number | null = null;
+  let extraMonthlyNeeded: number | null = null;
+  if (fireNumber != null && projectedRetirementCorpus != null) {
+    corpusGap = fireNumber - projectedRetirementCorpus;
+    if (corpusGap > 0 && yearsToRetire != null && yearsToRetire > 0) {
+      const p = retirementPlanParams(d);
+      if (p) {
+        // projectPlan is linear in monthlySip (no withdrawals in the probe), so a ₹1/month
+        // probe gives the exact closing value contributed per rupee of extra SIP.
+        const probe = projectPlan({ ...p.params, startAmount: 0, monthlySip: 1, withdrawals: new Map() });
+        const perRupee = probe.length >= yearsToRetire ? probe[yearsToRetire - 1].closing : 0;
+        if (perRupee > 0) extraMonthlyNeeded = corpusGap / perRupee;
+      }
+    }
+  }
+
+  let status: FireSummary['status'] = 'unknown';
+  if (monthlyGap != null || corpusGap != null) {
+    if (monthlyGap != null && monthlyGap < 0 && Math.abs(monthlyGap) > 0.25 * requiredMonthly) {
+      status = 'deficit';           // can't even fund this month's planned SIPs
+    } else if ((monthlyGap != null && monthlyGap < 0) || (corpusGap != null && corpusGap > 0)) {
+      status = 'behind';            // SIPs affordable, but projected corpus misses the FIRE number
+    } else {
+      status = 'ontrack';
+    }
+  }
+
   return {
     currentAge, retireAge, yearsToRetire,
     monthlyExpenseToday, monthlyExpenseAtRetire, fireNumber,
     currentSavings, savingsRate, requiredMonthly, monthlyGap, annualGap,
-    status, projectedRetirementCorpus,
+    status, projectedRetirementCorpus, corpusGap, extraMonthlyNeeded,
   };
 }
 
