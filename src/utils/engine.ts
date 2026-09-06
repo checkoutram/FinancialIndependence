@@ -241,33 +241,55 @@ export function mergeEvents(list: ChildEvent[][]): Map<number, number> {
 }
 
 // ---------- Plan builders from app data ----------
-export function buildChildrenPlan(d: FireData, alt: boolean): { rows: ProjectionRow[]; targetIdx: number } | null {
+/**
+ * Children education/marriage corpus projection.
+ * When childId is given, only that child's withdrawals are included and the
+ * children SIP / mapped assets are split in proportion to each child's total
+ * inflated goal cost (equal split when no costs are set).
+ * A plan is produced whenever there is a SIP, mapped assets, or any goal cost —
+ * with no SIP/assets the table shows the corpus going negative at withdrawals,
+ * which tells the user exactly what they need to save for.
+ */
+export function buildChildrenPlan(d: FireData, alt: boolean, childId?: string): { rows: ProjectionRow[]; targetIdx: number } | null {
   const g = d.goals;
   const a = d.assumptions;
   const startYear = new Date().getFullYear();
-  const sip = alt ? g.childrenSipAlt : g.childrenSipBase;
-  if (!sip) return null;
+  const eduInfl = alt ? a.altEducationInflation : a.educationInflation;
 
-  const events = mergeEvents(g.children.map(c =>
-    childWithdrawalEvents(c, alt ? a.altEducationInflation : a.educationInflation, a.inflation, alt)));
+  const kids = childId ? g.children.filter(x => x.childId === childId) : g.children;
+  if (childId && kids.length === 0) return null;
+
+  // SIP / asset share for a per-child view
+  let share = 1;
+  if (childId && g.children.length > 1) {
+    const totalOf = (cg: ChildGoal) => childWithdrawalEvents(cg, eduInfl, a.inflation, alt).reduce((s, e) => s + e.amount, 0);
+    const totals = g.children.map(totalOf);
+    const grand = totals.reduce((s, v) => s + v, 0);
+    share = grand > 0 ? totalOf(kids[0]) / grand : 1 / g.children.length;
+  }
+
+  const sip = (alt ? g.childrenSipAlt : g.childrenSipBase) || 0;
+  const startAmount = (alt
+    ? d.financialAssets.filter(x => x.mappedTo === 'children' && x.currency !== countryOf(d).baseCurrency)
+    : d.financialAssets.filter(x => x.mappedTo === 'children' && x.currency === countryOf(d).baseCurrency)
+  ).reduce((s, x) => s + (x.value || 0), 0);
+
+  const events = mergeEvents(kids.map(c =>
+    childWithdrawalEvents(c, eduInfl, a.inflation, alt)));
+  if (!sip && !startAmount && events.size === 0) return null;
+
   const horizonIdx = Math.max(1, ...[...events.keys()], 1);
-  const targetIdx = Math.min(...g.children.map(c => (alt ? c.ugYearsAlt : c.ugYears) || 99), 99);
+  const targetIdx = Math.min(...kids.map(c => (alt ? c.ugYearsAlt : c.ugYears) || 99), 99);
 
   const retireAge = g.retirement.retireAgeSelf;
   const birthYear = d.family.self.dob ? new Date(d.family.self.dob).getFullYear() : null;
   const retireYear = retireAge && birthYear ? birthYear + retireAge : startYear + 15;
   const contribEndIdx = Math.max(1, retireYear - startYear + 1);
 
-  const startAmount = alt
-    ? d.financialAssets.filter(x => x.mappedTo === 'children' && x.currency !== countryOf(d).baseCurrency)
-        .reduce((s, x) => s + (x.value || 0), 0)
-    : d.financialAssets.filter(x => x.mappedTo === 'children' && x.currency === countryOf(d).baseCurrency)
-        .reduce((s, x) => s + (x.value || 0), 0);
-
   const rows = projectPlan({
     startYear,
-    startAmount,
-    monthlySip: sip,
+    startAmount: startAmount * share,
+    monthlySip: sip * share,
     sipIncrease: alt ? a.altSipYearlyIncrease : a.sipYearlyIncrease,
     firstYearMonths: g.childrenFirstYearMonths || (alt ? 10 : 10),
     equityReturn: alt ? a.altEquityReturn : a.equityReturn,
