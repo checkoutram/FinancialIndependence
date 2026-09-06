@@ -2,6 +2,7 @@
 import { useStore } from '../utils/store';
 import { COUNTRIES, type Employment, type ExpenseItem, type Person } from '../types';
 import { Accordion, Field, Num, Text, DateInput, Select, InfoBox, SectionHeader, RowActions, CurrencyToggle } from '../components/ui';
+import { TestDataControls } from '../components/TestDataControls';
 import { countryOf, fmtFull } from '../utils/engine';
 import { Users, Briefcase, Wallet, SlidersHorizontal, Globe, Plus } from 'lucide-react';
 
@@ -185,6 +186,8 @@ export default function Inputs() {
       </button>
       {d.onboardingComplete && <p className="text-center text-xs text-green">Saved — everything recalculates automatically.</p>}
       <p className="hint text-center">FX rate in use: 1 {c.altCurrency} = {c.currencySymbol}{fmtFull(d.assumptions.fxRate, '', c.baseCurrency)}</p>
+
+      <TestDataControls />
     </div>
   );
 }
