@@ -196,7 +196,7 @@ function PersonForm({ label, person, onChange }: { label: string; person: Person
   return (
     <div className="space-y-3">
       {label && <p className="text-xs font-bold text-dim uppercase tracking-wider">{label}</p>}
-      <Field label="Name" hint={label === 'You' ? 'Example: Ramprasad Asokan' : undefined}>
+      <Field label="Name" hint={label === 'You' ? 'Example: Arjun Mehta' : undefined}>
         <Text value={person.name} onChange={v => onChange({ ...person, name: v })} placeholder="Full name" />
       </Field>
       <div className="grid grid-cols-2 gap-3">
@@ -218,7 +218,7 @@ function EmploymentForm({ title, emp, onChange, countryRet, countryHsa }: {
     <div className="space-y-3">
       <p className="text-xs font-bold text-dim uppercase tracking-wider">{title}</p>
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Company" ><Text value={emp.company} onChange={v => onChange({ ...emp, company: v })} placeholder="e.g. Cognizant" /></Field>
+        <Field label="Company" ><Text value={emp.company} onChange={v => onChange({ ...emp, company: v })} placeholder="e.g. Acme Technologies" /></Field>
         <Field label="Designation"><Text value={emp.designation} onChange={v => onChange({ ...emp, designation: v })} placeholder="e.g. Associate Director" /></Field>
       </div>
       <div className="grid grid-cols-2 gap-3 items-end">

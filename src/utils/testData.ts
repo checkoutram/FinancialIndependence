@@ -11,22 +11,22 @@ export function buildTestData(): FireData {
   const d = emptyFireData('IN');
 
   // Family
-  d.family.self = { name: 'Ramprasad Asokan', dob: '1990-08-18', citizenship: 'Indian (in USA)' };
-  d.family.spouse = { name: 'Hirunyaa Ramadhas', dob: '1992-10-19', citizenship: 'Indian (in USA)', enabled: true };
+  d.family.self = { name: 'Arjun Mehta', dob: '1990-08-18', citizenship: 'Indian (in USA)' };
+  d.family.spouse = { name: 'Priya Sharma', dob: '1992-10-19', citizenship: 'Indian (in USA)', enabled: true };
   d.family.children = [
-    { id: 'test-c1', name: 'Thanvik', dob: '2020-12-22', citizenship: 'Indian' },
-    { id: 'test-c2', name: 'Tharun', dob: '2024-12-10', citizenship: 'US citizen' },
+    { id: 'test-c1', name: 'Aarav', dob: '2020-12-22', citizenship: 'Indian' },
+    { id: 'test-c2', name: 'Vivaan', dob: '2024-12-10', citizenship: 'US citizen' },
   ];
   d.family.yearsToReturnHome = 10;
 
   // Employment
   d.employmentSelf = {
-    company: 'Cognizant', designation: 'Associate Director',
+    company: 'Acme Technologies', designation: 'Associate Director',
     takeHomeMonthly: 6838, salaryCurrency: 'USD', basicMonthly: 11910,
     retirementContributionPct: 15, healthAccountMonthly: 700, providentFundBalance: null,
   };
   d.employmentSpouse = {
-    company: 'Experis US LLC', designation: 'Automation Developer',
+    company: 'GlobalTech US Inc', designation: 'Automation Developer',
     takeHomeMonthly: 6400, salaryCurrency: 'USD', basicMonthly: 11200,
     retirementContributionPct: 16, healthAccountMonthly: null, providentFundBalance: 1025336,
     enabled: true,
@@ -69,7 +69,7 @@ export function buildTestData(): FireData {
   d.financialAssets = [
     { id: 't-f1', name: 'Gold Coins', value: 4560000, currency: 'INR', expectedReturn: 0.06, monthlyContribution: null, mappedTo: 'retirement' },
     { id: 't-f2', name: 'NPS', value: 379000, currency: 'INR', expectedReturn: 0.09, monthlyContribution: null, mappedTo: 'retirement' },
-    { id: 't-f3', name: 'EPF (Hirunyaa)', value: 1025336, currency: 'INR', expectedReturn: 0.08, monthlyContribution: null, mappedTo: 'retirement' },
+    { id: 't-f3', name: 'EPF (Priya)', value: 1025336, currency: 'INR', expectedReturn: 0.08, monthlyContribution: null, mappedTo: 'retirement' },
     { id: 't-f4', name: 'Gratuity (CTS)', value: 800000, currency: 'INR', expectedReturn: 0, monthlyContribution: null, mappedTo: 'retirement' },
     { id: 't-f5', name: 'HDFC Nifty 100 Index', value: 965000, currency: 'INR', expectedReturn: 0.10, monthlyContribution: null, mappedTo: 'retirement' },
     { id: 't-f6', name: 'Bank Deposit (Dad)', value: 3000000, currency: 'INR', expectedReturn: 0.081, monthlyContribution: null, mappedTo: 'children' },
