@@ -40,6 +40,25 @@ export function useStore() {
 
 const THEME_KEY = 'fire_theme';
 
+/** Recursively fill missing keys from defaults; stored values (incl. arrays) win when present. */
+function deepMerge(defaults: Record<string, unknown>, stored: Record<string, unknown>): Record<string, unknown> {
+  const out: Record<string, unknown> = { ...defaults };
+  for (const [k, v] of Object.entries(stored || {})) {
+    if (v === undefined || v === null) continue;
+    const dv = defaults?.[k];
+    if (
+      dv !== null && v !== null &&
+      typeof dv === 'object' && typeof v === 'object' &&
+      !Array.isArray(dv) && !Array.isArray(v)
+    ) {
+      out[k] = deepMerge(dv as Record<string, unknown>, v as Record<string, unknown>);
+    } else {
+      out[k] = v;
+    }
+  }
+  return out;
+}
+
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<FireData | null>(null);
   const [locked, setLocked] = useState(true);
@@ -93,8 +112,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     try {
       const decrypted = await decryptData(JSON.parse(store.encryptedData), pin);
       const parsed = JSON.parse(decrypted) as FireData;
-      // Merge onto the current empty shape so new fields get defaults
-      const merged = { ...emptyFireData(), ...parsed };
+      // Deep-merge onto the current empty shape so fields added in newer app
+      // versions get defaults — a shallow merge left nested objects (e.g.
+      // goals.others) undefined for older saves and crashed the dashboard.
+      const merged = deepMerge(emptyFireData() as unknown as Record<string, unknown>, parsed as unknown as Record<string, unknown>) as unknown as FireData;
       pinRef.current = pin;
       setData(merged);
       setLocked(false);
