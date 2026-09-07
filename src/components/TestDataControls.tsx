@@ -42,7 +42,7 @@ export function TestDataControls() {
       )}
       {confirm === 'load' && (
         <div className="text-xs space-y-2">
-          <p className="text-dim">Replace current entries with the sample household dataset (fictional family)?</p>
+          <p className="text-dim">Replace current entries with the sample household dataset (fictional US-based family)?</p>
           <div className="flex gap-2">
             <button className="btn-primary !py-2 !text-xs flex-1" onClick={load}>Yes, load it</button>
             <button className="btn-ghost !text-xs" onClick={() => setConfirm(null)}>Cancel</button>
