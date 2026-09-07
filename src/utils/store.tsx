@@ -46,14 +46,17 @@ function deepMerge(defaults: Record<string, unknown>, stored: Record<string, unk
   for (const [k, v] of Object.entries(stored || {})) {
     if (v === undefined || v === null) continue;
     const dv = defaults?.[k];
-    if (
-      dv !== null && v !== null &&
-      typeof dv === 'object' && typeof v === 'object' &&
-      !Array.isArray(dv) && !Array.isArray(v)
-    ) {
+    const bothObj = dv !== null && typeof dv === 'object' && typeof v === 'object';
+    if (bothObj && !Array.isArray(dv) && !Array.isArray(v)) {
       out[k] = deepMerge(dv as Record<string, unknown>, v as Record<string, unknown>);
+    } else if (dv !== null && dv !== undefined) {
+      // Default exists — only accept the stored value when its shape matches
+      // (array vs object vs primitive). Very old saves used different shapes
+      // (e.g. goals as an array); accepting them blindly crashed the app.
+      const shapeOk = Array.isArray(dv) === Array.isArray(v) && typeof dv === typeof v;
+      if (shapeOk) out[k] = v;
     } else {
-      out[k] = v;
+      out[k] = v; // no default constraint — new/unknown key, keep stored value
     }
   }
   return out;
