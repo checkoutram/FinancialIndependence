@@ -16,8 +16,22 @@ android {
             ignoreAssetsPattern '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            def ksFile = System.getenv('FIRE_KEYSTORE_FILE') ?: (project.findProperty('FIRE_KEYSTORE_FILE') as String)
+            if (ksFile != null) {
+                storeFile file(ksFile)
+                keyAlias System.getenv('FIRE_KEY_ALIAS') ?: (project.findProperty('FIRE_KEY_ALIAS') as String)
+                storePassword System.getenv('FIRE_KEYSTORE_PASSWORD') ?: (project.findProperty('FIRE_KEYSTORE_PASSWORD') as String)
+                keyPassword System.getenv('FIRE_KEY_PASSWORD') ?: (project.findProperty('FIRE_KEY_PASSWORD') as String)
+            }
+        }
+    }
     buildTypes {
         release {
+            if (System.getenv('FIRE_KEYSTORE_FILE') != null || project.hasProperty('FIRE_KEYSTORE_FILE')) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

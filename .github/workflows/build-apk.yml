@@ -8,38 +8,52 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
           cache: 'npm'
-      
+
       - uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
-      
+
       - name: Install dependencies
         run: npm install --no-audit --no-fund
-      
+
       - name: Build web app
         run: npm run build
-      
+
       - name: Sync Capacitor Android
         run: npx cap sync android
-      
+
       - name: Make gradlew executable
         run: chmod +x android/gradlew
-      
-      - name: Build debug APK
+
+      - name: Decode upload keystore
+        run: echo "${{ secrets.FIRE_KEYSTORE_BASE64 }}" | base64 -d > android/app/fire-upload.keystore
+
+      - name: Build signed release APK + AAB
         working-directory: android
-        run: |
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
-          ./gradlew assembleDebug --no-daemon --stacktrace
-      
-      - name: Upload APK
+        env:
+          ANDROID_HOME: ${{ env.ANDROID_SDK_ROOT }}
+          FIRE_KEYSTORE_FILE: fire-upload.keystore
+          FIRE_KEY_ALIAS: ${{ secrets.FIRE_KEY_ALIAS }}
+          FIRE_KEYSTORE_PASSWORD: ${{ secrets.FIRE_KEYSTORE_PASSWORD }}
+          FIRE_KEY_PASSWORD: ${{ secrets.FIRE_KEY_PASSWORD }}
+        run: ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace
+
+      - name: Upload signed APK
         uses: actions/upload-artifact@v4
         with:
           name: finplan-apk
-          path: android/app/build/outputs/apk/debug/app-debug.apk
+          path: android/app/build/outputs/apk/release/app-release.apk
+          if-no-files-found: warn
+
+      - name: Upload signed AAB (Play Store)
+        uses: actions/upload-artifact@v4
+        with:
+          name: finplan-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
           if-no-files-found: warn

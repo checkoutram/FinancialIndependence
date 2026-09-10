@@ -7,7 +7,6 @@ import {
   FIRE_TYPES, fireTypeCorpus, buildRetirementPlan,
 } from '../utils/engine';
 import { Card, CardTitle, Stat, ProgressBar, EmptyState, InfoBox } from '../components/ui';
-import { TestDataControls } from '../components/TestDataControls';
 import { DoughnutChart, BarChart } from '../components/charts';
 import { Flame, TrendingUp, TrendingDown, Minus, ClipboardList, PieChart as PieIcon, Wallet } from 'lucide-react';
 
@@ -31,7 +30,6 @@ export default function Overview({ go }: { go: (s: string) => void }) {
           body="Start by entering your family details, income and expenses on the Inputs tab. It takes about 5 minutes, and every field explains what to enter with examples."
           action={<button className="btn-primary" onClick={() => go('inputs')}>Open Inputs</button>}
         />
-        <TestDataControls />
         <InfoBox>
           The app computes your FIRE number, savings gap, goal projections and milestones from the data you enter.
           Nothing is pre-filled — your numbers stay encrypted on this device.
