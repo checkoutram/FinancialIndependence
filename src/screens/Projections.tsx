@@ -33,7 +33,7 @@ export default function Projections() {
     };
   }), [d]);
 
-  const otherGoals = d.goals.others.filter(g => g.years && g.monthlyInvestment);
+  const otherGoals = d.goals.others.filter(g => g.years && (g.monthlyInvestment || g.cost));
 
   // Build the dropdown options dynamically from whatever data exists
   const options: PlanOption[] = [{ key: 'retirement', label: 'Retirement corpus' }];

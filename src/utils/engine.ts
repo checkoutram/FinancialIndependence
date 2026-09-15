@@ -326,11 +326,12 @@ function retirementPlanParams(d: FireData) {
   if (!g.retireAgeSelf || !currentAge || !birthYear) return null;
 
   const startYear = new Date().getFullYear();
-  const yearsToRetire = Math.max(1, g.retireAgeSelf - currentAge - 1 + 1); // retireYear = startYear + yearsToRetire - 1
-  const retireYear = startYear + yearsToRetire - 1;
+  const retireYear = birthYear + g.retireAgeSelf;        // the year self turns retireAgeSelf (e.g. 1990+50 = 2040)
+  const yearsToRetire = Math.max(1, retireYear - startYear);
+  const retireIdx = yearsToRetire + 1;                    // 1-based row index of the retirement year
   const lifeExp = g.lifeExpectancy || 85;
   const endYear = birthYear + lifeExp;
-  const horizonIdx = Math.max(yearsToRetire, endYear - startYear + 1);
+  const horizonIdx = Math.max(retireIdx, endYear - startYear + 1);
 
   const startAmount = d.financialAssets
     .filter(x => x.mappedTo === 'retirement')
@@ -338,7 +339,7 @@ function retirementPlanParams(d: FireData) {
 
   const withdrawals = new Map<number, number>();
   if (g.monthlyExpenseToday) {
-    for (let idx = yearsToRetire; idx <= horizonIdx; idx++) {
+    for (let idx = retireIdx; idx <= horizonIdx; idx++) {
       // Workbook: FV(inflation, yearIdx - 1, , -monthlyExpense * 12)
       withdrawals.set(idx, g.monthlyExpenseToday * 12 * Math.pow(1 + a.inflation, idx - 1));
     }
@@ -356,7 +357,7 @@ function retirementPlanParams(d: FireData) {
       glide: idx => glideRetirement(startYear + idx - 1, retireYear),
       withdrawals,
       horizonIdx,
-      contribEndIdx: yearsToRetire,
+      contribEndIdx: retireIdx,   // contributions continue through the retirement year (per workbook)
       birthYear,
     },
     yearsToRetire,
@@ -370,7 +371,7 @@ export function buildRetirementPlan(d: FireData): ProjectionRow[] | null {
 
 export function buildOtherGoalPlan(d: FireData, goalId: string): { rows: ProjectionRow[]; targetIdx: number } | null {
   const goal = d.goals.others.find(g => g.id === goalId);
-  if (!goal || !goal.years || !goal.monthlyInvestment) return null;
+  if (!goal || !goal.years || (!goal.monthlyInvestment && !goal.cost)) return null;
   const a = d.assumptions;
   const startYear = new Date().getFullYear();
   const targetIdx = goal.years;
@@ -379,7 +380,7 @@ export function buildOtherGoalPlan(d: FireData, goalId: string): { rows: Project
   const rows = projectPlan({
     startYear,
     startAmount: 0,
-    monthlySip: goal.monthlyInvestment,
+    monthlySip: goal.monthlyInvestment || 0,
     sipIncrease: a.sipYearlyIncrease,
     firstYearMonths: goal.firstYearMonths || 12,
     equityReturn: a.equityReturn,
