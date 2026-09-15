@@ -11,8 +11,10 @@ import {
   encryptData, decryptData, getEncryptedData, storeEncryptedData,
   hashPIN, verifyPIN, generateRecoveryKey,
 } from './encryption';
+import { checkPremium, trialDaysLeft } from './billing';
 
 type Theme = 'dark' | 'light';
+export type Entitlement = 'trial' | 'premium' | 'expired';
 
 interface StoreCtx {
   data: FireData | null;
@@ -25,6 +27,10 @@ interface StoreCtx {
   unlock: (pin: string) => Promise<boolean>;
   lock: () => void;
   update: (fn: (d: FireData) => FireData) => void;
+  entitlement: Entitlement;
+  trialLeft: number;
+  readOnly: boolean;
+  refreshEntitlement: () => Promise<void>;
   changePin: (oldPin: string, newPin: string) => Promise<boolean>;
   deleteAll: () => void;
   exportEncrypted: () => string | null;
@@ -70,6 +76,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem(THEME_KEY) as Theme) || 'dark');
   const pinRef = useRef<string | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [entitlement, setEntitlement] = useState<Entitlement>('trial');
+  const [trialLeft, setTrialLeft] = useState(trialDaysLeft());
+  const entitlementRef = useRef<Entitlement>('trial');
+
+  const refreshEntitlement = useCallback(async () => {
+    const left = trialDaysLeft();
+    setTrialLeft(left);
+    let next: Entitlement;
+    // A paid subscription always wins, even mid-trial.
+    if (await checkPremium()) {
+      next = 'premium';
+    } else {
+      next = left > 0 ? 'trial' : 'expired';
+    }
+    entitlementRef.current = next;
+    setEntitlement(next);
+  }, []);
+
+  useEffect(() => {
+    if (!locked && data) void refreshEntitlement();
+  }, [locked, data !== null, refreshEntitlement]);
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -135,6 +162,9 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const update = useCallback((fn: (d: FireData) => FireData) => {
+    // Read-only mode (trial expired, no subscription): ignore all edits so
+    // the user's data stays visible but unchanged.
+    if (entitlementRef.current === 'expired') return;
     setData(prev => {
       if (!prev) return prev;
       const next = fn(prev);
@@ -172,6 +202,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       data, locked, isSetup, loading, theme,
       toggleTheme: () => setTheme(t => t === 'dark' ? 'light' : 'dark'),
       setup, unlock, lock, update, changePin, deleteAll, exportEncrypted,
+      entitlement, trialLeft, readOnly: entitlement === 'expired', refreshEntitlement,
     }}>
       {children}
     </Ctx.Provider>

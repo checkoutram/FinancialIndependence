@@ -9,6 +9,7 @@ import {
 import { Card, CardTitle, Stat, ProgressBar, EmptyState, InfoBox } from '../components/ui';
 import { DoughnutChart, BarChart } from '../components/charts';
 import { Flame, TrendingUp, TrendingDown, Minus, ClipboardList, PieChart as PieIcon, Wallet } from 'lucide-react';
+import { PremiumStatus } from '../components/Premium';
 
 export default function Overview({ go }: { go: (s: string) => void }) {
   const { data } = useStore();
@@ -70,6 +71,7 @@ export default function Overview({ go }: { go: (s: string) => void }) {
   return (
     <div className="p-4 pt-5 pb-8 space-y-4 animate-fade-in">
       <Header />
+      <PremiumStatus />
 
       {/* Hero status */}
       <Card className="space-y-4">
