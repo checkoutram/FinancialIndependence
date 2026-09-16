@@ -229,7 +229,7 @@ function Header() {
   return (
     <div className="flex items-center justify-between">
       <div>
-        <h1 className="text-xl font-extrabold flex items-center gap-2"><Flame size={20} className="text-amber" /> FIRE Tracker</h1>
+        <h1 className="text-xl font-extrabold flex items-center gap-2"><img src="./icon.png" alt="FIRE Tracker" className="w-7 h-7 rounded-lg" /> FIRE Tracker</h1>
         <p className="text-xs text-faint">{data?.family.self.name ? `Hello, ${data.family.self.name.split(' ')[0]}` : 'Your financial independence dashboard'}</p>
       </div>
       <div className="flex gap-2">

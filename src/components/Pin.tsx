@@ -6,10 +6,7 @@ import { useStore } from '../utils/store';
 export function Welcome({ onStart }: { onStart: () => void }) {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center" style={{ background: 'linear-gradient(160deg, var(--bg) 0%, var(--bg-soft) 100%)', paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-      <div className="w-20 h-20 rounded-3xl flex items-center justify-center mb-6 animate-fade-in"
-        style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
-        <Flame size={40} color="#fff" />
-      </div>
+      <img src="./icon.png" alt="FIRE Tracker" className="w-20 h-20 rounded-3xl mb-6 animate-fade-in" />
       <h1 className="text-3xl font-extrabold mb-2 animate-fade-in">FIRE Tracker</h1>
       <p className="text-dim max-w-xs mb-2 animate-fade-in">Financial Independence, Retire Early — plan your corpus, track goals and project your future.</p>
       <div className="card p-4 max-w-xs w-full text-left text-xs text-dim space-y-2 my-6 animate-fade-in">
@@ -70,9 +67,7 @@ export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: 
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'var(--bg)', paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-4" style={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
-        <Flame size={26} color="#fff" />
-      </div>
+      <img src="./icon.png" alt="FIRE Tracker" className="w-14 h-14 rounded-2xl mb-4" />
       <h2 className="text-xl font-bold mb-1">{title}</h2>
       <p className="text-xs text-dim mb-6 text-center max-w-[240px]">{subtitle}</p>
 
