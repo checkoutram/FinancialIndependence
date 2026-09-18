@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Flame, ShieldCheck, ShieldQuestion, Trash2, Delete } from 'lucide-react';
 import { useStore } from '../utils/store';
+import { restoreBackup } from '../utils/backup';
 
 /** Security questions offered at PIN setup (user picks 2). */
 export const RECOVERY_QUESTIONS = [
@@ -14,6 +15,17 @@ export const RECOVERY_QUESTIONS = [
 
 /** Welcome screen for first-time users — explains the app, no data yet. */
 export function Welcome({ onStart }: { onStart: () => void }) {
+  const [restoreMsg, setRestoreMsg] = useState('');
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const pick = async (f: File | undefined) => {
+    if (!f) return;
+    const text = await f.text();
+    const err = restoreBackup(text);
+    if (err) setRestoreMsg(err);
+    else window.location.reload();
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center" style={{ background: 'linear-gradient(160deg, var(--bg) 0%, var(--bg-soft) 100%)', paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
       <img src="./icon.png" alt="FIRE Tracker" className="w-20 h-20 rounded-3xl mb-6 animate-fade-in" />
@@ -25,6 +37,14 @@ export function Welcome({ onStart }: { onStart: () => void }) {
       </div>
       <button className="btn-primary max-w-xs" onClick={onStart}>Set up my plan</button>
       <p className="hint mt-4 max-w-xs">You will enter your own numbers step by step. Every field has examples and explanations — nothing is pre-filled.</p>
+      <div className="mt-6 animate-fade-in">
+        <button className="text-dim text-xs underline" onClick={() => fileRef.current?.click()}>
+          Have a backup from your old phone? Restore it here
+        </button>
+        <input ref={fileRef} type="file" accept=".json,application/json" className="hidden"
+          onChange={e => { void pick(e.target.files?.[0]); e.target.value = ''; }} />
+        {restoreMsg && <p className="text-red text-xs mt-2 max-w-xs">{restoreMsg}</p>}
+      </div>
     </div>
   );
 }

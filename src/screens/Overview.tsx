@@ -1,5 +1,5 @@
 // Screen 1 — Overview / Hero Dashboard
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useStore } from '../utils/store';
 import {
   computeFireSummary, fmt, fmtFull, pct, countryOf, monthlyExpensesBase, monthlyIncomeBase,
@@ -8,8 +8,60 @@ import {
 } from '../utils/engine';
 import { Card, CardTitle, Stat, ProgressBar, EmptyState, InfoBox } from '../components/ui';
 import { DoughnutChart, BarChart } from '../components/charts';
-import { Flame, TrendingUp, TrendingDown, Minus, ClipboardList, PieChart as PieIcon, Wallet } from 'lucide-react';
+import { Flame, TrendingUp, TrendingDown, Minus, ClipboardList, PieChart as PieIcon, Wallet, CloudUpload, X } from 'lucide-react';
 import { PremiumStatus } from '../components/Premium';
+import { backupDue, lastBackupAt, exportBackup, BACKUP_REMINDER_DAYS } from '../utils/backup';
+
+/** Weekly backup reminder banner + back-up-now action. */
+function BackupReminder() {
+  const [dismissed, setDismissed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [doneMsg, setDoneMsg] = useState('');
+  const [, force] = useState(0);
+  if (dismissed) return null;
+  const due = backupDue();
+  const last = lastBackupAt();
+  if (!due && !doneMsg) return null;
+
+  const run = async () => {
+    if (busy) return;
+    setBusy(true);
+    try {
+      const r = await exportBackup();
+      if (r !== 'cancelled') {
+        setDoneMsg('Backup saved — keep the file somewhere safe (Drive, Gmail, WhatsApp).');
+        force(x => x + 1);
+      }
+    } catch {
+      setDoneMsg('Backup failed — please try again.');
+    }
+    setBusy(false);
+  };
+
+  return (
+    <div className="card p-3 flex items-center gap-3" style={{ borderColor: due && !doneMsg ? 'var(--amber)' : 'var(--card-border)' }}>
+      <CloudUpload size={20} className="text-amber shrink-0" />
+      <div className="flex-1 text-xs">
+        {doneMsg ? (
+          <span className="text-dim">{doneMsg}</span>
+        ) : (
+          <>
+            <div className="font-semibold">Back up your data</div>
+            <div className="text-dim">
+              {last ? `Last backup: ${new Date(last).toLocaleDateString()}` : 'No backup yet'} — if you lose this phone, only a backup can restore your plan. We remind you every {BACKUP_REMINDER_DAYS} days.
+            </div>
+          </>
+        )}
+      </div>
+      {!doneMsg && (
+        <button className="btn-primary text-xs px-3 py-2" disabled={busy} onClick={run}>
+          {busy ? '…' : 'Back up'}
+        </button>
+      )}
+      <button onClick={() => setDismissed(true)} className="text-faint shrink-0 p-1"><X size={14} /></button>
+    </div>
+  );
+}
 
 export default function Overview({ go }: { go: (s: string) => void }) {
   const { data } = useStore();
@@ -72,6 +124,7 @@ export default function Overview({ go }: { go: (s: string) => void }) {
     <div className="p-4 pt-5 pb-8 space-y-4 animate-fade-in">
       <Header />
       <PremiumStatus />
+      <BackupReminder />
 
       {/* Hero status */}
       <Card className="space-y-4">
@@ -226,6 +279,13 @@ export default function Overview({ go }: { go: (s: string) => void }) {
 
 function Header() {
   const { data, lock, theme, toggleTheme } = useStore();
+  const [backingUp, setBackingUp] = useState(false);
+  const backup = async () => {
+    if (backingUp) return;
+    setBackingUp(true);
+    try { await exportBackup(); } catch { /* user cancelled or failed silently */ }
+    setBackingUp(false);
+  };
   return (
     <div className="flex items-center justify-between">
       <div>
@@ -233,6 +293,9 @@ function Header() {
         <p className="text-xs text-faint">{data?.family.self.name ? `Hello, ${data.family.self.name.split(' ')[0]}` : 'Your financial independence dashboard'}</p>
       </div>
       <div className="flex gap-2">
+        <button onClick={backup} disabled={backingUp} title="Back up data" className="text-xs text-dim px-2.5 py-1.5 rounded-lg no-print flex items-center gap-1" style={{ background: 'var(--input-bg)' }}>
+          <CloudUpload size={13} /> {backingUp ? '…' : 'Backup'}
+        </button>
         <button onClick={toggleTheme} className="text-xs text-dim px-3 py-1.5 rounded-lg no-print" style={{ background: 'var(--input-bg)' }}>
           {theme === 'dark' ? '☀ Light' : '☾ Dark'}
         </button>
