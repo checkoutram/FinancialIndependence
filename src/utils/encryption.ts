@@ -22,6 +22,39 @@ export interface SecureStore {
   encryptedData: string;
   biometricEnabled: boolean;
   autoLock: string;
+  /** Security questions shown on the "Forgot PIN" screen (plain text). */
+  recoveryQuestions?: string[];
+  /** The PIN, encrypted with a key derived from the recovery answers. */
+  recoveryData?: string;
+  /** The recovery answers, encrypted with the PIN (used to re-wrap recovery on PIN change). */
+  answersEnc?: string;
+}
+
+// Normalize an answer so small differences (case, spacing) don't matter
+function normalizeAnswer(a: string): string {
+  return a.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+// Derive a passphrase from all answers combined
+function answersPassphrase(answers: string[]): string {
+  return answers.map(normalizeAnswer).join('|');
+}
+
+// Encrypt the PIN with recovery answers (for "Forgot PIN" flow)
+export async function encryptPinWithAnswers(pin: string, answers: string[]): Promise<string> {
+  const enc = await encryptData(pin, answersPassphrase(answers));
+  return JSON.stringify(enc);
+}
+
+// Recover the PIN from recovery answers — throws/returns null if wrong
+export async function decryptPinWithAnswers(recoveryData: string, answers: string[]): Promise<string | null> {
+  try {
+    const enc: EncryptedData = JSON.parse(recoveryData);
+    const pin = await decryptData(enc, answersPassphrase(answers));
+    return /^\d{4,6}$/.test(pin) ? pin : null;
+  } catch {
+    return null;
+  }
 }
 
 // Generate a random string for recovery key

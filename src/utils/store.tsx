@@ -10,6 +10,7 @@ import { emptyFireData } from '../types';
 import {
   encryptData, decryptData, getEncryptedData, storeEncryptedData,
   hashPIN, verifyPIN, generateRecoveryKey,
+  encryptPinWithAnswers, decryptPinWithAnswers,
 } from './encryption';
 import { checkPremium, trialDaysLeft } from './billing';
 
@@ -23,8 +24,16 @@ interface StoreCtx {
   loading: boolean;
   theme: Theme;
   toggleTheme: () => void;
-  setup: (pin: string) => Promise<void>;
+  setup: (pin: string, questions?: string[], answers?: string[]) => Promise<void>;
   unlock: (pin: string) => Promise<boolean>;
+  /** Verify recovery answers; returns the recovered PIN or null. */
+  recoverPin: (answers: string[]) => Promise<string | null>;
+  /** After recovery: decrypt with recovered PIN, re-encrypt under new PIN. */
+  resetPin: (recoveredPin: string, newPin: string) => Promise<boolean>;
+  /** True if recovery questions were configured at setup. */
+  hasRecovery: () => boolean;
+  /** Recovery questions to display on the Forgot PIN screen. */
+  getRecoveryQuestions: () => string[];
   lock: () => void;
   update: (fn: (d: FireData) => FireData) => void;
   entitlement: Entitlement;
@@ -110,28 +119,82 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setLoading(false);
   }, []);
 
-  const persist = useCallback(async (d: FireData) => {
+  const persist = useCallback(async (d: FireData, recovery?: { questions: string[]; answers: string[] }) => {
     const pin = pinRef.current;
     if (!pin) return;
     const encrypted = await encryptData(JSON.stringify(d), pin);
     const { hash } = await hashPIN(pin);
     const existing = getEncryptedData();
+    // Recovery: keep existing fields unless new ones are supplied.
+    // On PIN change, answersEnc is re-wrapped below by the caller.
+    let recoveryQuestions = existing?.recoveryQuestions;
+    let recoveryData = existing?.recoveryData;
+    let answersEnc = existing ? (existing as Record<string, unknown>).answersEnc as string | undefined : undefined;
+    if (recovery) {
+      recoveryQuestions = recovery.questions;
+      recoveryData = await encryptPinWithAnswers(pin, recovery.answers);
+      answersEnc = JSON.stringify(await encryptData(JSON.stringify(recovery.answers), pin));
+    }
     storeEncryptedData({
       pinHash: hash,
       recoveryKey: existing?.recoveryKey || generateRecoveryKey(),
       encryptedData: JSON.stringify(encrypted),
       biometricEnabled: false,
       autoLock: 'never',
-    });
+      recoveryQuestions,
+      recoveryData,
+      ...(answersEnc ? { answersEnc } : {}),
+    } as Parameters<typeof storeEncryptedData>[0]);
   }, []);
 
-  const setup = useCallback(async (pin: string) => {
+  const setup = useCallback(async (pin: string, questions?: string[], answers?: string[]) => {
     pinRef.current = pin;
     const d = emptyFireData();
-    await persist(d);
+    await persist(d, questions && answers ? { questions, answers } : undefined);
     setData(d);
     setIsSetup(true);
     setLocked(false);
+  }, [persist]);
+
+  const hasRecovery = useCallback((): boolean => {
+    const store = getEncryptedData();
+    return !!(store?.recoveryQuestions?.length && store?.recoveryData);
+  }, []);
+
+  const getRecoveryQuestions = useCallback((): string[] => {
+    return getEncryptedData()?.recoveryQuestions || [];
+  }, []);
+
+  const recoverPin = useCallback(async (answers: string[]): Promise<string | null> => {
+    const store = getEncryptedData();
+    if (!store?.recoveryData) return null;
+    return decryptPinWithAnswers(store.recoveryData, answers);
+  }, []);
+
+  const resetPin = useCallback(async (recoveredPin: string, newPin: string): Promise<boolean> => {
+    const store = getEncryptedData();
+    if (!store) return false;
+    try {
+      const decrypted = await decryptData(JSON.parse(store.encryptedData), recoveredPin);
+      const parsed = JSON.parse(decrypted) as FireData;
+      // Decrypt stored answers so we can re-wrap recovery under the new PIN
+      let recovery: { questions: string[]; answers: string[] } | undefined;
+      const answersEnc = (store as Record<string, unknown>).answersEnc as string | undefined;
+      if (store.recoveryQuestions?.length && answersEnc) {
+        try {
+          const answers = JSON.parse(await decryptData(JSON.parse(answersEnc), recoveredPin)) as string[];
+          recovery = { questions: store.recoveryQuestions, answers };
+        } catch { /* answers blob unreadable — drop recovery */ }
+      }
+      pinRef.current = newPin;
+      const merged = deepMerge(emptyFireData() as unknown as Record<string, unknown>, parsed as unknown as Record<string, unknown>) as unknown as FireData;
+      await persist(merged, recovery);
+      setData(merged);
+      setLocked(false);
+      return true;
+    } catch {
+      return false;
+    }
   }, [persist]);
 
   const unlock = useCallback(async (pin: string): Promise<boolean> => {
@@ -179,8 +242,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     if (!store || !data) return false;
     const ok = await verifyPIN(oldPin, store.pinHash);
     if (!ok) return false;
+    // Re-wrap recovery answers under the new PIN so Forgot PIN keeps working
+    let recovery: { questions: string[]; answers: string[] } | undefined;
+    const answersEnc = (store as Record<string, unknown>).answersEnc as string | undefined;
+    if (store.recoveryQuestions?.length && answersEnc) {
+      try {
+        const answers = JSON.parse(await decryptData(JSON.parse(answersEnc), oldPin)) as string[];
+        recovery = { questions: store.recoveryQuestions, answers };
+      } catch { /* drop recovery if unreadable */ }
+    }
     pinRef.current = newPin;
-    await persist(data);
+    await persist(data, recovery);
     return true;
   }, [data, persist]);
 
@@ -202,6 +274,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       data, locked, isSetup, loading, theme,
       toggleTheme: () => setTheme(t => t === 'dark' ? 'light' : 'dark'),
       setup, unlock, lock, update, changePin, deleteAll, exportEncrypted,
+      recoverPin, resetPin, hasRecovery, getRecoveryQuestions,
       entitlement, trialLeft, readOnly: entitlement === 'expired', refreshEntitlement,
     }}>
       {children}
