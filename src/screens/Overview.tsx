@@ -8,7 +8,7 @@ import {
 } from '../utils/engine';
 import { Card, CardTitle, Stat, ProgressBar, InfoBox } from '../components/ui';
 import { DoughnutChart, BarChart } from '../components/charts';
-import { Flame, TrendingUp, TrendingDown, Minus, PieChart as PieIcon, Wallet, CloudUpload, X } from 'lucide-react';
+import { Flame, TrendingUp, TrendingDown, Minus, PieChart as PieIcon, Wallet, CloudUpload, X, Sun, Moon, Lock as LockIcon } from 'lucide-react';
 import { PremiumStatus } from '../components/Premium';
 import { backupDue, lastBackupAt, exportBackup, BACKUP_REMINDER_DAYS } from '../utils/backup';
 import { useT, LangToggle } from '../utils/i18n';
@@ -351,20 +351,22 @@ function Header() {
     setBackingUp(false);
   };
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <h1 className="text-xl font-extrabold flex items-center gap-2"><img src="./icon.png" alt="FIRE Tracker" className="w-7 h-7 rounded-lg" /> FIRE Tracker</h1>
-        <p className="text-xs text-faint">{data?.family.self.name ? t('hdr.hello', { name: data.family.self.name.split(' ')[0] }) : t('hdr.tagline')}</p>
+    <div className="flex items-center justify-between gap-2">
+      <div className="min-w-0 shrink">
+        <h1 className="text-lg font-extrabold flex items-center gap-2 whitespace-nowrap"><img src="./icon.png" alt="FIRE Tracker" className="w-7 h-7 rounded-lg shrink-0" /> FIRE Tracker</h1>
+        <p className="text-xs text-faint truncate">{data?.family.self.name ? t('hdr.hello', { name: data.family.self.name.split(' ')[0] }) : t('hdr.tagline')}</p>
       </div>
-      <div className="flex gap-2 items-center">
+      <div className="flex gap-1.5 items-center shrink-0">
         <LangToggle />
-        <button onClick={backup} disabled={backingUp} title={t('bk.title')} className="text-xs text-dim px-2.5 py-1.5 rounded-lg no-print flex items-center gap-1" style={{ background: 'var(--input-bg)' }}>
-          <CloudUpload size={13} /> {backingUp ? '…' : t('hdr.backup')}
+        <button onClick={backup} disabled={backingUp} title={t('bk.title')} aria-label={t('bk.title')} className="text-dim p-2 rounded-lg no-print flex items-center" style={{ background: 'var(--input-bg)' }}>
+          <CloudUpload size={15} className={backingUp ? 'animate-pulse' : ''} />
         </button>
-        <button onClick={toggleTheme} className="text-xs text-dim px-3 py-1.5 rounded-lg no-print" style={{ background: 'var(--input-bg)' }}>
-          {theme === 'dark' ? t('hdr.light') : t('hdr.dark')}
+        <button onClick={toggleTheme} title={theme === 'dark' ? t('hdr.light') : t('hdr.dark')} aria-label={theme === 'dark' ? t('hdr.light') : t('hdr.dark')} className="text-dim p-2 rounded-lg no-print" style={{ background: 'var(--input-bg)' }}>
+          {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
         </button>
-        <button onClick={lock} className="text-xs text-dim px-3 py-1.5 rounded-lg no-print" style={{ background: 'var(--input-bg)' }}>{t('hdr.lock')}</button>
+        <button onClick={lock} title={t('hdr.lock')} aria-label={t('hdr.lock')} className="text-dim p-2 rounded-lg no-print" style={{ background: 'var(--input-bg)' }}>
+          <LockIcon size={15} />
+        </button>
       </div>
     </div>
   );
