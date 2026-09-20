@@ -154,11 +154,42 @@ export default function Overview({ go }: { go: (s: string) => void }) {
   const corpusAtRetire = retRows && s.yearsToRetire != null && retRows.length >= s.yearsToRetire
     ? retRows[s.yearsToRetire - 1].closing : null;
 
+  // USP hero: monthly saving target + FIRE number, front and centre
+  const monthlyTarget = s.requiredMonthly > 0
+    ? s.requiredMonthly + (s.extraMonthlyNeeded != null && s.extraMonthlyNeeded > 0 ? s.extraMonthlyNeeded : 0)
+    : (s.extraMonthlyNeeded != null && s.extraMonthlyNeeded > 0 ? s.extraMonthlyNeeded : 0);
+  const retireYear = s.retireAge != null && s.currentAge != null
+    ? new Date().getFullYear() + (s.yearsToRetire ?? 0)
+    : null;
+
   return (
     <div className="p-4 pt-5 pb-8 space-y-4 animate-fade-in">
       <Header />
       <PremiumStatus />
       <BackupReminder />
+
+      {/* USP hero — the two numbers everyone wants to know */}
+      {(monthlyTarget > 0 || s.fireNumber != null) && (
+        <div className="card p-5 space-y-4" style={{ background: 'linear-gradient(150deg, color-mix(in srgb, var(--green) 16%, var(--card)) 0%, var(--card) 60%)', borderColor: 'color-mix(in srgb, var(--green) 35%, transparent)' }}>
+          {monthlyTarget > 0 && (
+            <div className="text-center">
+              <p className="text-xs text-dim uppercase tracking-wide mb-1">You should save every month</p>
+              <p className="text-3xl font-extrabold tabular" style={{ color: 'var(--green)' }}>{fmtFull(Math.ceil(monthlyTarget / 100) * 100, sym)}</p>
+              <p className="text-xs text-dim mt-1">to fund all your goals and FIRE on time</p>
+            </div>
+          )}
+          {s.fireNumber != null && (
+            <div className="text-center pt-3" style={{ borderTop: '1px solid var(--card-border)' }}>
+              <p className="text-xs text-dim uppercase tracking-wide mb-1">Your FIRE retirement amount</p>
+              <p className="text-3xl font-extrabold tabular" style={{ color: 'var(--amber)' }}>{fmt(s.fireNumber, sym)}</p>
+              <p className="text-xs text-dim mt-1">
+                needed in <b>{s.yearsToRetire} years</b>
+                {retireYear ? ` — you can retire in ${retireYear} at age ${s.retireAge}` : ''}
+              </p>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Hero status */}
       <Card className="space-y-4">
