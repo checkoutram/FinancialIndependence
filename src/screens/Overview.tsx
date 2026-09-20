@@ -6,9 +6,9 @@ import {
   totalFinancialAssets, totalRealAssets, totalLiabilities, recommendedAllocation,
   FIRE_TYPES, fireTypeCorpus, buildRetirementPlan,
 } from '../utils/engine';
-import { Card, CardTitle, Stat, ProgressBar, EmptyState, InfoBox } from '../components/ui';
+import { Card, CardTitle, Stat, ProgressBar, InfoBox } from '../components/ui';
 import { DoughnutChart, BarChart } from '../components/charts';
-import { Flame, TrendingUp, TrendingDown, Minus, ClipboardList, PieChart as PieIcon, Wallet, CloudUpload, X } from 'lucide-react';
+import { Flame, TrendingUp, TrendingDown, Minus, PieChart as PieIcon, Wallet, CloudUpload, X } from 'lucide-react';
 import { PremiumStatus } from '../components/Premium';
 import { backupDue, lastBackupAt, exportBackup, BACKUP_REMINDER_DAYS } from '../utils/backup';
 
@@ -77,12 +77,46 @@ export default function Overview({ go }: { go: (s: string) => void }) {
     return (
       <div className="p-4 pt-5 pb-8 space-y-4">
         <Header />
-        <EmptyState
-          icon={<ClipboardList size={26} />}
-          title="Let's build your FIRE plan"
-          body="Start by entering your family details, income and expenses on the Inputs tab. It takes about 5 minutes, and every field explains what to enter with examples."
-          action={<button className="btn-primary" onClick={() => go('inputs')}>Open Inputs</button>}
-        />
+
+        {/* Curiosity hook hero */}
+        <div className="card p-5 text-center space-y-4" style={{ background: 'linear-gradient(160deg, var(--card) 0%, var(--bg-soft) 100%)' }}>
+          <img src="./icon.png" alt="FIRE Tracker" className="w-16 h-16 rounded-2xl mx-auto animate-fade-in" />
+          <div className="space-y-3">
+            <p className="text-lg font-bold leading-snug animate-fade-in">
+              Do you know <span style={{ color: 'var(--amber)' }}>how much you should save every month</span> to retire comfortably?
+            </p>
+            <p className="text-lg font-bold leading-snug animate-fade-in">
+              Do you know <span className="text-green">when you can financially retire</span> — the exact year?
+            </p>
+            <p className="text-xs text-dim animate-fade-in">Most people don't. In the next 5 minutes, you will.</p>
+          </div>
+          <button className="btn-primary" onClick={() => go('inputs')}>Find out — build my plan</button>
+          <p className="hint">Free for 30 days · Every field explained with examples · Nothing pre-filled</p>
+        </div>
+
+        {/* What you'll discover */}
+        <Card>
+          <CardTitle>What you'll discover</CardTitle>
+          <div className="space-y-3 mt-3 text-xs">
+            <div className="flex gap-3 items-start">
+              <span className="text-base">🎯</span>
+              <div><b>Your FIRE number</b><span className="text-dim"> — the exact corpus you need so work becomes optional</span></div>
+            </div>
+            <div className="flex gap-3 items-start">
+              <span className="text-base">📅</span>
+              <div><b>Your retirement year</b><span className="text-dim"> — and how every extra ₹1,000/month moves it earlier</span></div>
+            </div>
+            <div className="flex gap-3 items-start">
+              <span className="text-base">💰</span>
+              <div><b>Your monthly saving target</b><span className="text-dim"> — the SIP amount that actually gets you there</span></div>
+            </div>
+            <div className="flex gap-3 items-start">
+              <span className="text-base">👨‍👩‍👧‍👦</span>
+              <div><b>Your family's goals, funded</b><span className="text-dim"> — kids' education, marriage, dream trips, all mapped</span></div>
+            </div>
+          </div>
+        </Card>
+
         <InfoBox>
           The app computes your FIRE number, savings gap, goal projections and milestones from the data you enter.
           Nothing is pre-filled — your numbers stay encrypted on this device.
