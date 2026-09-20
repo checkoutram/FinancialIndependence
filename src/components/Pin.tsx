@@ -2,19 +2,17 @@ import { useState, useRef } from 'react';
 import { Flame, ShieldCheck, ShieldQuestion, Trash2, Delete } from 'lucide-react';
 import { useStore } from '../utils/store';
 import { restoreBackup } from '../utils/backup';
+import { useT, LangToggle } from '../utils/i18n';
 
-/** Security questions offered at PIN setup (user picks 2). */
-export const RECOVERY_QUESTIONS = [
-  'What was your first school name?',
-  'What is your mother\u2019s maiden name?',
-  'What was your childhood nickname?',
-  'What city were you born in?',
-  'What was the name of your first pet?',
-  'What is your favourite teacher\u2019s name?',
-];
+/**
+ * Security questions offered at PIN setup (user picks 2).
+ * Stored values are the translation KEYS so they render in the current language.
+ */
+export const RECOVERY_QUESTION_KEYS = ['q.school', 'q.maiden', 'q.nickname', 'q.city', 'q.pet', 'q.teacher'] as const;
 
 /** Welcome screen for first-time users — explains the app, no data yet. */
 export function Welcome({ onStart }: { onStart: () => void }) {
+  const t = useT();
   const [restoreMsg, setRestoreMsg] = useState('');
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -28,18 +26,19 @@ export function Welcome({ onStart }: { onStart: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center" style={{ background: 'linear-gradient(160deg, var(--bg) 0%, var(--bg-soft) 100%)', paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
+      <div className="absolute top-4 right-4" style={{ top: 'max(1rem, env(safe-area-inset-top))' }}><LangToggle /></div>
       <img src="./icon.png" alt="FIRE Tracker" className="w-20 h-20 rounded-3xl mb-6 animate-fade-in" />
       <h1 className="text-3xl font-extrabold mb-2 animate-fade-in">FIRE Tracker</h1>
-      <p className="text-dim max-w-xs mb-2 animate-fade-in">Financial Independence, Retire Early — plan your corpus, track goals and project your future.</p>
+      <p className="text-dim max-w-xs mb-2 animate-fade-in">{t('welcome.tagline')}</p>
       <div className="card p-4 max-w-xs w-full text-left text-xs text-dim space-y-2 my-6 animate-fade-in">
-        <div className="flex gap-2"><ShieldCheck size={15} className="text-green shrink-0 mt-0.5" /> Your data is encrypted with a PIN (AES-256) and never leaves this device.</div>
-        <div className="flex gap-2"><Flame size={15} className="text-amber shrink-0 mt-0.5" /> Works fully offline — no account, no cloud, no tracking.</div>
+        <div className="flex gap-2"><ShieldCheck size={15} className="text-green shrink-0 mt-0.5" /> {t('welcome.sec1')}</div>
+        <div className="flex gap-2"><Flame size={15} className="text-amber shrink-0 mt-0.5" /> {t('welcome.sec2')}</div>
       </div>
-      <button className="btn-primary max-w-xs" onClick={onStart}>Set up my plan</button>
-      <p className="hint mt-4 max-w-xs">You will enter your own numbers step by step. Every field has examples and explanations — nothing is pre-filled.</p>
+      <button className="btn-primary max-w-xs" onClick={onStart}>{t('welcome.cta')}</button>
+      <p className="hint mt-4 max-w-xs">{t('welcome.hint')}</p>
       <div className="mt-6 animate-fade-in">
         <button className="text-dim text-xs underline" onClick={() => fileRef.current?.click()}>
-          Have a backup from your old phone? Restore it here
+          {t('welcome.restore')}
         </button>
         <input ref={fileRef} type="file" accept=".json,application/json" className="hidden"
           onChange={e => { void pick(e.target.files?.[0]); e.target.value = ''; }} />
@@ -52,6 +51,7 @@ export function Welcome({ onStart }: { onStart: () => void }) {
 /** PIN pad used for both setup and unlock. */
 export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: () => void }) {
   const { setup, unlock } = useStore();
+  const t = useT();
   const [pin, setPin] = useState('');
   const [confirm, setConfirm] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -66,7 +66,7 @@ export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: 
         return;
       }
       if (confirm !== p) {
-        setError('PINs do not match — try again');
+        setError(t('pin.mismatch'));
         setConfirm(null);
         setPin('');
         return;
@@ -77,7 +77,7 @@ export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: 
       const ok = await unlock(p);
       if (ok) onDone();
       else {
-        setError('Incorrect PIN');
+        setError(t('pin.incorrect'));
         setPin('');
       }
     }
@@ -106,11 +106,11 @@ export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: 
   }
 
   const title = mode === 'setup'
-    ? (confirm === null ? 'Create a PIN' : 'Confirm your PIN')
-    : 'Enter your PIN';
+    ? (confirm === null ? t('pin.create') : t('pin.confirm'))
+    : t('pin.enter');
   const subtitle = mode === 'setup'
-    ? (confirm === null ? '4–6 digits. This PIN encrypts all your data.' : 'Enter the same PIN again')
-    : 'Your data is encrypted on this device';
+    ? (confirm === null ? t('pin.createSub') : t('pin.confirmSub'))
+    : t('pin.enterSub');
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'var(--bg)', paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
@@ -120,7 +120,7 @@ export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: 
 
       <div className="flex items-center justify-center gap-3 mb-1" style={{ minHeight: 18 }}>
         {pin.length === 0
-          ? <span className="text-xs" style={{ color: 'var(--text-faint)' }}>4–6 digits</span>
+          ? <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{t('pin.digits')}</span>
           : Array.from({ length: pin.length }).map((_, i) => <div key={i} className="pin-dot filled" />)}
       </div>
       <div style={{ minHeight: 20 }}>{error && <p className="text-red text-xs animate-fade-in">{error}</p>}</div>
@@ -142,7 +142,7 @@ export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: 
         style={{ width: '16rem', maxWidth: '100%' }}
         disabled={pin.length < 4}
         onClick={() => submit(pin)}>
-        {mode === 'setup' ? (confirm === null ? 'Continue' : 'Confirm PIN') : 'Unlock'}
+        {mode === 'setup' ? (confirm === null ? t('pin.continue') : t('pin.confirmBtn')) : t('pin.unlock')}
       </button>
       {mode === 'unlock' && <ResetLink />}
     </div>
@@ -151,8 +151,9 @@ export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: 
 
 /** Setup step: pick 2 security questions and answer them (enables Forgot PIN). */
 function RecoverySetup({ onComplete, onSkip }: { onComplete: (q: string[], a: string[]) => void; onSkip: () => void }) {
-  const [q1, setQ1] = useState(RECOVERY_QUESTIONS[0]);
-  const [q2, setQ2] = useState(RECOVERY_QUESTIONS[1]);
+  const t = useT();
+  const [q1, setQ1] = useState<string>(RECOVERY_QUESTION_KEYS[0]);
+  const [q2, setQ2] = useState<string>(RECOVERY_QUESTION_KEYS[1]);
   const [a1, setA1] = useState('');
   const [a2, setA2] = useState('');
   const [busy, setBusy] = useState(false);
@@ -167,28 +168,28 @@ function RecoverySetup({ onComplete, onSkip }: { onComplete: (q: string[], a: st
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'var(--bg)', paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
       <ShieldQuestion size={44} className="text-green mb-3" />
-      <h2 className="text-xl font-bold mb-1">Recovery questions</h2>
-      <p className="text-xs text-dim mb-5 text-center max-w-[280px]">If you ever forget your PIN, these answers let you reset it and keep your data. Answers are encrypted on this device.</p>
+      <h2 className="text-xl font-bold mb-1">{t('rec.title')}</h2>
+      <p className="text-xs text-dim mb-5 text-center max-w-[280px]">{t('rec.sub')}</p>
       <div className="card p-4 w-full max-w-xs space-y-3">
         <div>
-          <label className="text-xs text-dim block mb-1">Question 1</label>
+          <label className="text-xs text-dim block mb-1">{t('rec.q1')}</label>
           <select className="input" value={q1} onChange={e => setQ1(e.target.value)}>
-            {RECOVERY_QUESTIONS.map(q => <option key={q} value={q}>{q}</option>)}
+            {RECOVERY_QUESTION_KEYS.map(k => <option key={k} value={k}>{t(k)}</option>)}
           </select>
-          <input className="input mt-2" value={a1} onChange={e => setA1(e.target.value)} placeholder="Your answer" autoCapitalize="none" />
+          <input className="input mt-2" value={a1} onChange={e => setA1(e.target.value)} placeholder={t('rec.answer')} autoCapitalize="none" />
         </div>
         <div>
-          <label className="text-xs text-dim block mb-1">Question 2</label>
+          <label className="text-xs text-dim block mb-1">{t('rec.q2')}</label>
           <select className="input" value={q2} onChange={e => setQ2(e.target.value)}>
-            {RECOVERY_QUESTIONS.map(q => <option key={q} value={q}>{q}</option>)}
+            {RECOVERY_QUESTION_KEYS.map(k => <option key={k} value={k}>{t(k)}</option>)}
           </select>
-          <input className="input mt-2" value={a2} onChange={e => setA2(e.target.value)} placeholder="Your answer" autoCapitalize="none" />
+          <input className="input mt-2" value={a2} onChange={e => setA2(e.target.value)} placeholder={t('rec.answer')} autoCapitalize="none" />
         </div>
       </div>
       <button className="btn-primary mt-5" style={{ width: '16rem', maxWidth: '100%' }} disabled={!valid || busy} onClick={done}>
-        {busy ? 'Saving…' : 'Save & finish'}
+        {busy ? t('rec.saving') : t('rec.save')}
       </button>
-      <button className="text-faint text-xs mt-4 underline" onClick={onSkip}>Skip — I understand data cannot be recovered without the PIN</button>
+      <button className="text-faint text-xs mt-4 underline" onClick={onSkip}>{t('rec.skip')}</button>
     </div>
   );
 }
@@ -196,6 +197,7 @@ function RecoverySetup({ onComplete, onSkip }: { onComplete: (q: string[], a: st
 /** Forgot PIN: verify answers → set a new PIN → data preserved. */
 function RecoveryFlow({ onDone, onBack }: { onDone: () => void; onBack: () => void }) {
   const { getRecoveryQuestions, recoverPin, resetPin } = useStore();
+  const t = useT();
   const questions = getRecoveryQuestions();
   const [answers, setAnswers] = useState<string[]>(questions.map(() => ''));
   const [stage, setStage] = useState<'answers' | 'newpin' | 'confirm'>('answers');
@@ -217,7 +219,7 @@ function RecoveryFlow({ onDone, onBack }: { onDone: () => void; onBack: () => vo
       setRecovered(p);
       setStage('newpin');
     } else {
-      setError('Answers do not match — try again');
+      setError(t('recf.badAnswers'));
     }
   };
 
@@ -230,7 +232,7 @@ function RecoveryFlow({ onDone, onBack }: { onDone: () => void; onBack: () => vo
       return;
     }
     if (pin !== newPin) {
-      setError('PINs do not match — try again');
+      setError(t('pin.mismatch'));
       setPin('');
       setStage('newpin');
       return;
@@ -240,15 +242,15 @@ function RecoveryFlow({ onDone, onBack }: { onDone: () => void; onBack: () => vo
     const ok = await resetPin(recovered, pin);
     setBusy(false);
     if (ok) onDone();
-    else setError('Something went wrong — try again');
+    else setError(t('recf.error'));
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'var(--bg)', paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
       <ShieldQuestion size={44} className="text-green mb-3" />
-      <h2 className="text-xl font-bold mb-1">{stage === 'answers' ? 'Recover your PIN' : stage === 'newpin' ? 'Set a new PIN' : 'Confirm new PIN'}</h2>
+      <h2 className="text-xl font-bold mb-1">{stage === 'answers' ? t('recf.recover') : stage === 'newpin' ? t('recf.newpin') : t('recf.confirmNew')}</h2>
       <p className="text-xs text-dim mb-5 text-center max-w-[280px]">
-        {stage === 'answers' ? 'Answer your recovery questions to reset the PIN. Your data stays intact.' : 'Choose a new 4–6 digit PIN. Your data will be re-encrypted with it.'}
+        {stage === 'answers' ? t('recf.subAnswers') : t('recf.subPin')}
       </p>
 
       {stage === 'answers' ? (
@@ -256,24 +258,24 @@ function RecoveryFlow({ onDone, onBack }: { onDone: () => void; onBack: () => vo
           <div className="card p-4 w-full max-w-xs space-y-3">
             {questions.map((q, i) => (
               <div key={q}>
-                <label className="text-xs text-dim block mb-1">{q}</label>
+                <label className="text-xs text-dim block mb-1">{t(q)}</label>
                 <input className="input" value={answers[i]} autoCapitalize="none"
                   onChange={e => setAnswers(prev => prev.map((a, j) => j === i ? e.target.value : a))}
-                  placeholder="Your answer" />
+                  placeholder={t('rec.answer')} />
               </div>
             ))}
           </div>
           <div style={{ minHeight: 20, marginTop: 8 }}>{error && <p className="text-red text-xs animate-fade-in">{error}</p>}</div>
           <button className="btn-primary mt-2" style={{ width: '16rem', maxWidth: '100%' }}
             disabled={busy || answers.some(a => a.trim().length < 2)} onClick={verify}>
-            {busy ? 'Verifying…' : 'Verify answers'}
+            {busy ? t('recf.verifying') : t('recf.verify')}
           </button>
         </>
       ) : (
         <>
           <div className="flex items-center justify-center gap-3 mb-1" style={{ minHeight: 18 }}>
             {pin.length === 0
-              ? <span className="text-xs" style={{ color: 'var(--text-faint)' }}>4–6 digits</span>
+              ? <span className="text-xs" style={{ color: 'var(--text-faint)' }}>{t('pin.digits')}</span>
               : Array.from({ length: pin.length }).map((_, i) => <div key={i} className="pin-dot filled" />)}
           </div>
           <div style={{ minHeight: 20 }}>{error && <p className="text-red text-xs animate-fade-in">{error}</p>}</div>
@@ -289,17 +291,18 @@ function RecoveryFlow({ onDone, onBack }: { onDone: () => void; onBack: () => vo
           </div>
           <button className="btn-primary mt-5" style={{ width: '16rem', maxWidth: '100%' }}
             disabled={pin.length < 4 || busy} onClick={submitPin}>
-            {busy ? 'Resetting…' : stage === 'newpin' ? 'Continue' : 'Reset PIN & unlock'}
+            {busy ? t('recf.resetting') : stage === 'newpin' ? t('pin.continue') : t('recf.resetBtn')}
           </button>
         </>
       )}
-      <button className="text-faint text-xs mt-4 underline" onClick={onBack}>Back</button>
+      <button className="text-faint text-xs mt-4 underline" onClick={onBack}>{t('recf.back')}</button>
     </div>
   );
 }
 
 function ResetLink() {
   const { deleteAll, hasRecovery } = useStore();
+  const t = useT();
   const [ask, setAsk] = useState(false);
   const [recover, setRecover] = useState(false);
 
@@ -308,7 +311,7 @@ function ResetLink() {
   }
   if (!ask) {
     return (
-      <button className="text-faint text-xs mt-5 underline" onClick={() => setAsk(true)}>Forgot PIN?</button>
+      <button className="text-faint text-xs mt-5 underline" onClick={() => setAsk(true)}>{t('pin.forgot')}</button>
     );
   }
   const canRecover = hasRecovery();
@@ -316,15 +319,15 @@ function ResetLink() {
     <div className="card p-4 mt-5 max-w-xs text-center">
       {canRecover && (
         <>
-          <p className="text-xs text-dim mb-3">Answer your recovery questions to reset the PIN and keep all your data.</p>
+          <p className="text-xs text-dim mb-3">{t('reset.explainRecover')}</p>
           <button className="btn-primary mb-3" onClick={() => setRecover(true)}>
-            <ShieldQuestion size={15} /> Reset PIN with recovery questions
+            <ShieldQuestion size={15} /> {t('reset.btn')}
           </button>
         </>
       )}
-      <p className="text-xs text-dim mb-3">{canRecover ? 'Or, if you also forgot the answers:' : 'Without the PIN, encrypted data cannot be recovered. You can erase everything and start over.'}</p>
+      <p className="text-xs text-dim mb-3">{canRecover ? t('reset.forgotAnswers') : t('reset.noPin')}</p>
       <button className="btn-primary" style={{ background: 'var(--red)' }} onClick={deleteAll}>
-        <Trash2 size={15} /> Erase all data & start over
+        <Trash2 size={15} /> {t('reset.erase')}
       </button>
     </div>
   );

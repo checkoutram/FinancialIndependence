@@ -1,6 +1,7 @@
 // Shared UI primitives — consistent financial-app look & feel.
 import { useState, type ReactNode } from 'react';
 import { ChevronDown, Info, Trash2 } from 'lucide-react';
+import { t as tr } from '../utils/i18n';
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`card p-4 ${className}`}>{children}</div>;
@@ -138,7 +139,7 @@ export function InfoBox({ children }: { children: ReactNode }) {
 
 export function RowActions({ onDelete }: { onDelete: () => void }) {
   return (
-    <button onClick={onDelete} className="p-1.5 rounded-lg text-faint hover:text-red-400 transition-colors" aria-label="Delete row">
+    <button onClick={onDelete} className="p-1.5 rounded-lg text-faint hover:text-red-400 transition-colors" aria-label={tr('misc.delete')}>
       <Trash2 size={15} />
     </button>
   );

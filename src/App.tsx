@@ -8,20 +8,22 @@ import Goals from './screens/Goals';
 import Projections from './screens/Projections';
 import FireTypes from './screens/FireTypes';
 import { LayoutDashboard, ClipboardList, Scale, Target, LineChart, Flame } from 'lucide-react';
+import { useT } from './utils/i18n';
 
 type Screen = 'overview' | 'inputs' | 'assets' | 'goals' | 'projections' | 'firetypes';
 
-const NAV: Array<{ key: Screen; label: string; icon: typeof Flame }> = [
-  { key: 'overview', label: 'Home', icon: LayoutDashboard },
-  { key: 'inputs', label: 'Inputs', icon: ClipboardList },
-  { key: 'assets', label: 'Assets', icon: Scale },
-  { key: 'goals', label: 'Goals', icon: Target },
-  { key: 'projections', label: 'Project', icon: LineChart },
-  { key: 'firetypes', label: 'FIRE', icon: Flame },
+const NAV: Array<{ key: Screen; labelKey: string; icon: typeof Flame }> = [
+  { key: 'overview', labelKey: 'nav.home', icon: LayoutDashboard },
+  { key: 'inputs', labelKey: 'nav.inputs', icon: ClipboardList },
+  { key: 'assets', labelKey: 'nav.assets', icon: Scale },
+  { key: 'goals', labelKey: 'nav.goals', icon: Target },
+  { key: 'projections', labelKey: 'nav.project', icon: LineChart },
+  { key: 'firetypes', labelKey: 'nav.fire', icon: Flame },
 ];
 
 function Shell() {
   const { isSetup, locked, loading, data } = useStore();
+  const t = useT();
   const [screen, setScreen] = useState<Screen>('overview');
   const [phase, setPhase] = useState<'welcome' | 'pin-setup' | 'app'>('welcome');
 
@@ -66,7 +68,7 @@ function Shell() {
               className="flex flex-col items-center gap-0.5 py-2 px-1.5 transition-colors"
               style={{ color: screen === n.key ? 'var(--accent)' : 'var(--text-faint)' }}>
               <n.icon size={19} />
-              <span className="text-[9px] font-semibold">{n.label}</span>
+              <span className="text-[9px] font-semibold">{t(n.labelKey)}</span>
             </button>
           ))}
         </div>
