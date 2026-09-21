@@ -1,5 +1,5 @@
 // Screen 1 — Overview / Hero Dashboard
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { useStore } from '../utils/store';
 import {
   computeFireSummary, fmt, fmtFull, pct, countryOf, monthlyExpensesBase, monthlyIncomeBase,
@@ -8,9 +8,9 @@ import {
 } from '../utils/engine';
 import { Card, CardTitle, Stat, ProgressBar, InfoBox } from '../components/ui';
 import { DoughnutChart, BarChart } from '../components/charts';
-import { Flame, TrendingUp, TrendingDown, Minus, PieChart as PieIcon, Wallet, CloudUpload, X, Sun, Moon, Lock as LockIcon } from 'lucide-react';
+import { Flame, TrendingUp, TrendingDown, Minus, PieChart as PieIcon, Wallet, CloudUpload, X, Sun, Moon, Lock as LockIcon, FileUp } from 'lucide-react';
 import { PremiumStatus } from '../components/Premium';
-import { backupDue, lastBackupAt, exportBackup, BACKUP_REMINDER_DAYS } from '../utils/backup';
+import { backupDue, lastBackupAt, exportBackup, restoreBackup, BACKUP_REMINDER_DAYS } from '../utils/backup';
 import { useT, LangToggle } from '../utils/i18n';
 
 /** Weekly backup reminder banner + back-up-now action. */
@@ -344,11 +344,19 @@ function Header() {
   const { data, lock, theme, toggleTheme } = useStore();
   const t = useT();
   const [backingUp, setBackingUp] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   const backup = async () => {
     if (backingUp) return;
     setBackingUp(true);
     try { await exportBackup(); } catch { /* user cancelled or failed silently */ }
     setBackingUp(false);
+  };
+  const importBackup = async (f: File | undefined) => {
+    if (!f) return;
+    if (!window.confirm(t('hdr.confirmRestore'))) return;
+    const err = restoreBackup(await f.text());
+    if (err) window.alert(t('hdr.importFail'));
+    else window.location.reload();
   };
   return (
     <div className="flex items-center justify-between gap-2">
@@ -361,10 +369,15 @@ function Header() {
         <button onClick={backup} disabled={backingUp} title={t('bk.title')} aria-label={t('bk.title')} className="text-dim p-2 rounded-lg no-print flex items-center" style={{ background: 'var(--input-bg)' }}>
           <CloudUpload size={15} className={backingUp ? 'animate-pulse' : ''} />
         </button>
+        <button onClick={() => fileRef.current?.click()} title={t('hdr.import')} aria-label={t('hdr.import')} className="text-dim p-2 rounded-lg no-print flex items-center" style={{ background: 'var(--input-bg)' }}>
+          <FileUp size={15} />
+        </button>
+        <input ref={fileRef} type="file" accept=".json,application/json" className="hidden"
+          onChange={e => { void importBackup(e.target.files?.[0]); e.target.value = ''; }} />
         <button onClick={toggleTheme} title={theme === 'dark' ? t('hdr.light') : t('hdr.dark')} aria-label={theme === 'dark' ? t('hdr.light') : t('hdr.dark')} className="text-dim p-2 rounded-lg no-print" style={{ background: 'var(--input-bg)' }}>
           {theme === 'dark' ? <Sun size={15} /> : <Moon size={15} />}
         </button>
-        <button onClick={lock} title={t('hdr.lock')} aria-label={t('hdr.lock')} className="text-dim p-2 rounded-lg no-print" style={{ background: 'var(--input-bg)' }}>
+        <button onClick={lock} title={t('hdr.logout')} aria-label={t('hdr.logout')} className="text-dim p-2 rounded-lg no-print" style={{ background: 'var(--input-bg)' }}>
           <LockIcon size={15} />
         </button>
       </div>

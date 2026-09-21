@@ -128,6 +128,10 @@ const DICT: Record<Lang, Record<string, string>> = {
     'hdr.hello': 'Hello, {name}',
     'hdr.tagline': 'Your financial independence dashboard',
     'hdr.backup': 'Backup', 'hdr.light': '☀ Light', 'hdr.dark': '☾ Dark', 'hdr.lock': 'Lock',
+    'hdr.import': 'Import backup',
+    'hdr.confirmRestore': 'Importing a backup will replace ALL current data on this device. Continue?',
+    'hdr.importFail': 'Not a valid FIRE Tracker backup file.',
+    'hdr.logout': 'Log out (lock app)',
 
     // Overview — empty-state hero
     'hero.q1pre': 'Do you know ', 'hero.q1hl': 'how much you should save every month', 'hero.q1post': ' to retire comfortably?',
@@ -436,6 +440,10 @@ const DICT: Record<Lang, Record<string, string>> = {
     'hdr.hello': 'வணக்கம், {name}',
     'hdr.tagline': 'உங்கள் நிதி சுதந்திர டாஷ்போர்டு',
     'hdr.backup': 'காப்பு', 'hdr.light': '☀ ஒளி', 'hdr.dark': '☾ இருள்', 'hdr.lock': 'பூட்டு',
+    'hdr.import': 'காப்புப்பிரதியை இறக்குமதி செய்',
+    'hdr.confirmRestore': 'காப்புப்பிரதியை இறக்குமதி செய்வது இந்தச் சாதனத்தில் உள்ள அனைத்துத் தரவையும் மாற்றிவிடும். தொடரவா?',
+    'hdr.importFail': 'சரியான FIRE Tracker காப்புப்பிரதிக் கோப்பு அல்ல.',
+    'hdr.logout': 'வெளியேறு (செயலியைப் பூட்டு)',
 
     // Overview — empty-state hero
     'hero.q1pre': 'வசதியாக ஓய்வு பெற ', 'hero.q1hl': 'ஒவ்வொரு மாதமும் எவ்வளவு சேமிக்க வேண்டும்', 'hero.q1post': ' என்பது உங்களுக்குத் தெரியுமா?',
