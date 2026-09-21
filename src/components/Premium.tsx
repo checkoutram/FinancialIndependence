@@ -27,6 +27,10 @@ export function PremiumModal({ onClose }: { onClose: () => void }) {
   }, [entitlement, onClose]);
 
   const subscribe = async () => {
+    if (!product) {
+      setMsg(t('prem.unavailable'));
+      return;
+    }
     setBusy(true); setMsg(null);
     const res = await purchasePremium();
     setBusy(false);

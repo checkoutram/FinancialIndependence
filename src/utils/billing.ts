@@ -24,6 +24,14 @@ export interface ProductInfo {
 
 export const isNative = () => Capacitor.isNativePlatform();
 
+/** Never let a Play Billing call hang the UI — fail after `ms` so the app stays responsive. */
+function withTimeout<T>(p: Promise<T>, ms = 12000): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('billing-timeout')), ms)),
+  ]);
+}
+
 /** Trial clock starts at first launch of the installed app. */
 export function getTrialStart(): number {
   const raw = localStorage.getItem(TRIAL_KEY);
@@ -54,7 +62,7 @@ function writeCache(premium: boolean) {
 
 /** Check with Google Play whether a subscription is active. */
 async function queryPlayPremium(): Promise<boolean> {
-  const { purchases } = await NativePurchases.getPurchases({ productType: PURCHASE_TYPE.SUBS });
+  const { purchases } = await withTimeout(NativePurchases.getPurchases({ productType: PURCHASE_TYPE.SUBS }));
   return (purchases || []).some(p => {
     const state = (p as { purchaseState?: string; isAcknowledged?: boolean }).purchaseState;
     // Any returned active subscription purchase counts (Play only returns owned ones).
@@ -83,10 +91,10 @@ export async function checkPremium(): Promise<boolean> {
 export async function loadProduct(): Promise<ProductInfo | null> {
   if (!isNative()) return null;
   try {
-    const { products } = await NativePurchases.getProducts({
+    const { products } = await withTimeout(NativePurchases.getProducts({
       productIdentifiers: [PRODUCT_ID],
       productType: PURCHASE_TYPE.SUBS,
-    });
+    }));
     const p = products?.[0];
     if (!p) return null;
     const anyP = p as unknown as { title?: string; priceString?: string; description?: string };
@@ -98,11 +106,11 @@ export async function loadProduct(): Promise<ProductInfo | null> {
 
 export async function purchasePremium(): Promise<'ok' | 'cancelled' | 'error'> {
   try {
-    await NativePurchases.purchaseProduct({
+    await withTimeout(NativePurchases.purchaseProduct({
       productIdentifier: PRODUCT_ID,
       planIdentifier: PLAN_ID,
       productType: PURCHASE_TYPE.SUBS,
-    });
+    }));
     writeCache(true);
     return 'ok';
   } catch (e) {
@@ -114,7 +122,7 @@ export async function purchasePremium(): Promise<'ok' | 'cancelled' | 'error'> {
 
 export async function restorePremium(): Promise<boolean> {
   try {
-    await NativePurchases.restorePurchases();
+    await withTimeout(NativePurchases.restorePurchases());
     const premium = await queryPlayPremium();
     writeCache(premium);
     return premium;
@@ -125,6 +133,6 @@ export async function restorePremium(): Promise<boolean> {
 
 export async function openManageSubscriptions(): Promise<void> {
   try {
-    await NativePurchases.manageSubscriptions();
+    await withTimeout(NativePurchases.manageSubscriptions(), 8000);
   } catch { /* ignore */ }
 }
