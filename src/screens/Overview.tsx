@@ -361,8 +361,8 @@ function Header() {
   return (
     <div className="flex items-center justify-between gap-2">
       <div className="min-w-0 shrink">
-        <h1 className="text-lg font-extrabold flex items-center gap-2 whitespace-nowrap"><img src="./icon.png" alt="FIRE Tracker" className="w-7 h-7 rounded-lg shrink-0" /> FIRE Tracker</h1>
-        <p className="text-xs text-faint truncate">{data?.family.self.name ? t('hdr.hello', { name: data.family.self.name.split(' ')[0] }) : t('hdr.tagline')}</p>
+        <h1 className="text-lg font-extrabold flex items-center gap-2 whitespace-nowrap"><img src="./icon.png" alt="FIRE" className="w-7 h-7 rounded-lg shrink-0" /> FIRE</h1>
+        <p className="text-xs text-faint whitespace-nowrap overflow-hidden text-ellipsis">{data?.family.self.name ? t('hdr.hello', { name: data.family.self.name.split(' ')[0] }) : t('hdr.tagline')}</p>
       </div>
       <div className="flex gap-1.5 items-center shrink-0">
         <LangToggle />
