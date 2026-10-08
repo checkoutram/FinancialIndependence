@@ -149,6 +149,26 @@ export function PinScreen({ mode, onDone }: { mode: 'setup' | 'unlock'; onDone: 
   );
 }
 
+/** Tappable question picker — wraps long text, unlike a native <select>. */
+function QuestionPicker({ value, exclude, onChange }: { value: string; exclude?: string; onChange: (k: string) => void }) {
+  const t = useT();
+  return (
+    <div className="space-y-1.5">
+      {RECOVERY_QUESTION_KEYS.filter(k => k !== exclude).map(k => (
+        <button key={k} type="button" onClick={() => onChange(k)}
+          className="w-full text-left text-xs px-3 py-2 rounded-lg leading-snug break-words whitespace-normal transition-colors"
+          style={{
+            background: k === value ? 'var(--green-bg, rgba(34,197,94,0.12))' : 'var(--input-bg)',
+            border: k === value ? '1.5px solid var(--green, #22c55e)' : '1px solid var(--card-border)',
+            color: 'var(--text)',
+          }}>
+          {t(k)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 /** Setup step: pick 2 security questions and answer them (enables Forgot PIN). */
 function RecoverySetup({ onComplete, onSkip }: { onComplete: (q: string[], a: string[]) => void; onSkip: () => void }) {
   const t = useT();
@@ -167,22 +187,18 @@ function RecoverySetup({ onComplete, onSkip }: { onComplete: (q: string[], a: st
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6" style={{ background: 'var(--bg)', paddingTop: 'max(1.5rem, env(safe-area-inset-top))', paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
-      <ShieldQuestion size={44} className="text-green mb-3" />
+      <ShieldQuestion size={44} className="text-green mb-3 shrink-0" />
       <h2 className="text-xl font-bold mb-1">{t('rec.title')}</h2>
       <p className="text-xs text-dim mb-5 text-center max-w-[280px]">{t('rec.sub')}</p>
-      <div className="card p-4 w-full max-w-xs space-y-3">
+      <div className="card p-4 w-full max-w-xs space-y-3 overflow-y-auto" style={{ maxHeight: '55vh' }}>
         <div>
           <label className="text-xs text-dim block mb-1">{t('rec.q1')}</label>
-          <select className="input" value={q1} onChange={e => setQ1(e.target.value)}>
-            {RECOVERY_QUESTION_KEYS.map(k => <option key={k} value={k}>{t(k)}</option>)}
-          </select>
+          <QuestionPicker value={q1} exclude={q2} onChange={setQ1} />
           <input className="input mt-2" value={a1} onChange={e => setA1(e.target.value)} placeholder={t('rec.answer')} autoCapitalize="none" />
         </div>
         <div>
           <label className="text-xs text-dim block mb-1">{t('rec.q2')}</label>
-          <select className="input" value={q2} onChange={e => setQ2(e.target.value)}>
-            {RECOVERY_QUESTION_KEYS.map(k => <option key={k} value={k}>{t(k)}</option>)}
-          </select>
+          <QuestionPicker value={q2} exclude={q1} onChange={setQ2} />
           <input className="input mt-2" value={a2} onChange={e => setA2(e.target.value)} placeholder={t('rec.answer')} autoCapitalize="none" />
         </div>
       </div>
