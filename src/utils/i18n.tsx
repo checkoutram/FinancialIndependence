@@ -127,7 +127,7 @@ const DICT: Record<Lang, Record<string, string>> = {
 
     // Header
     'hdr.hello': 'Hello, {name}',
-    'hdr.tagline': 'Your financial independence dashboard',
+    'hdr.tagline': 'Financial Independence',
     'hdr.backup': 'Backup', 'hdr.light': '☀ Light', 'hdr.dark': '☾ Dark', 'hdr.lock': 'Lock',
     'hdr.import': 'Import backup',
     'hdr.confirmRestore': 'Importing a backup will replace ALL current data on this device. Continue?',
@@ -440,7 +440,7 @@ const DICT: Record<Lang, Record<string, string>> = {
 
     // Header
     'hdr.hello': 'வணக்கம், {name}',
-    'hdr.tagline': 'உங்கள் நிதி சுதந்திர டாஷ்போர்டு',
+    'hdr.tagline': 'நிதி சுதந்திரம்',
     'hdr.backup': 'காப்பு', 'hdr.light': '☀ ஒளி', 'hdr.dark': '☾ இருள்', 'hdr.lock': 'பூட்டு',
     'hdr.import': 'காப்புப்பிரதியை இறக்குமதி செய்',
     'hdr.confirmRestore': 'காப்புப்பிரதியை இறக்குமதி செய்வது இந்தச் சாதனத்தில் உள்ள அனைத்துத் தரவையும் மாற்றிவிடும். தொடரவா?',
