@@ -19,18 +19,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-      - name: Install dependencies
-        run: npm install --no-audit --no-fund
-      - name: Build
-        run: npm run build
+      # Web app is intentionally NOT published — only the privacy policy page
+      # (required by the Play Store listing) is kept online.
+      - name: Prepare privacy-only site
+        run: |
+          mkdir -p site
+          cp public/privacy.html site/privacy.html
+          echo '<!doctype html><meta http-equiv="refresh" content="0; url=https://play.google.com/store/apps/details?id=com.checkoutram.finplan"><title>FIRE Tracker</title><p>Get FIRE Tracker on <a href="https://play.google.com/store/apps/details?id=com.checkoutram.finplan">Google Play</a>.</p>' > site/index.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: dist
+          path: site
 
   deploy:
     needs: build
