@@ -5,6 +5,7 @@ import {
   buildRetirementPlan, buildChildrenPlan, buildOtherGoalPlan,
   countryOf, fmtFull, pct, type ProjectionRow,
 } from '../utils/engine';
+import type { Currency } from '../types';
 import { Card, CardTitle, EmptyState, InfoBox, SectionHeader, Field } from '../components/ui';
 import { LineChart } from '../components/charts';
 import { LineChart as LineIcon } from 'lucide-react';
@@ -106,7 +107,7 @@ function NoData({ text }: { text: string }) {
 }
 
 function PlanView({ rows, symbol, currency, title, note }: {
-  rows: ProjectionRow[]; symbol: string; currency: 'INR' | 'USD'; title: string; note: string;
+  rows: ProjectionRow[]; symbol: string; currency: Currency; title: string; note: string;
 }) {
   const t = useT();
   const labels = rows.map(r => r.age != null ? `${r.year} (${r.age})` : r.year);

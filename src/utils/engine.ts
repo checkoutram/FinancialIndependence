@@ -13,7 +13,7 @@ import type {
   FireData, FinancialAsset, RealAsset, LiabilityItem, ExpenseItem,
   ChildGoal, Currency, CountryProfile, GoalMapping,
 } from '../types';
-import { COUNTRIES } from '../types';
+import { COUNTRIES, FX_INR_PER } from '../types';
 
 // ---------- Formatting ----------
 export function fmt(value: number, symbol = '₹', currency: Currency = 'INR'): string {
@@ -55,9 +55,18 @@ export function countryOf(d: FireData): CountryProfile {
   return COUNTRIES.find(c => c.code === d.country) || COUNTRIES[0];
 }
 
-export function toBase(amount: number, currency: Currency, d: FireData): number {
+/** FX rate converting 1 unit of `currency` into the plan's base currency.
+ *  The user's own assumptions.fxRate is used for the country's alt currency;
+ *  other currencies use the static FX_INR_PER table (via INR). */
+export function rateToBase(currency: Currency, d: FireData): number {
   const c = countryOf(d);
-  return currency === c.baseCurrency ? amount : amount * d.assumptions.fxRate;
+  if (currency === c.baseCurrency) return 1;
+  if (currency === c.altCurrency) return d.assumptions.fxRate;
+  return FX_INR_PER[currency] / FX_INR_PER[c.baseCurrency];
+}
+
+export function toBase(amount: number, currency: Currency, d: FireData): number {
+  return amount * rateToBase(currency, d);
 }
 
 /**

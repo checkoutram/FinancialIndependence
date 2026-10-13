@@ -2,6 +2,7 @@
 import { useState, type ReactNode } from 'react';
 import { ChevronDown, Info, Trash2 } from 'lucide-react';
 import { t as tr } from '../utils/i18n';
+import { CURRENCIES, type Currency } from '../types';
 
 export function Card({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <div className={`card p-4 ${className}`}>{children}</div>;
@@ -154,16 +155,14 @@ export function SectionHeader({ title, subtitle }: { title: string; subtitle?: s
   );
 }
 
-export function CurrencyToggle({ value, onChange }: { value: string; onChange: (v: 'INR' | 'USD') => void }) {
+export function CurrencyToggle({ value, onChange }: { value: string; onChange: (v: Currency) => void }) {
   return (
-    <div className="flex rounded-lg overflow-hidden border" style={{ borderColor: 'var(--card-border)' }}>
-      {(['INR', 'USD'] as const).map(c => (
-        <button key={c} type="button" onClick={() => onChange(c)}
-          className="px-3 py-1.5 text-xs font-bold transition-colors"
-          style={{ background: value === c ? 'var(--accent)' : 'transparent', color: value === c ? '#fff' : 'var(--text-dim)' }}>
-          {c === 'INR' ? '₹ INR' : '$ USD'}
-        </button>
+    <select value={value} onChange={e => onChange(e.target.value as Currency)} aria-label="Currency"
+      className="px-3 py-1.5 text-xs font-bold rounded-lg outline-none"
+      style={{ background: 'var(--input-bg)', border: '1px solid var(--card-border)', color: 'var(--text)' }}>
+      {CURRENCIES.map(c => (
+        <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>
       ))}
-    </div>
+    </select>
   );
 }

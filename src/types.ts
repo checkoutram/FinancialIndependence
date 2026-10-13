@@ -3,7 +3,34 @@
 // All user data is entered by the user. Nothing is pre-filled.
 // ============================================
 
-export type Currency = 'INR' | 'USD';
+export type Currency = 'INR' | 'USD' | 'EUR' | 'GBP' | 'AUD' | 'CAD' | 'SGD' | 'AED' | 'JPY' | 'CHF' | 'NZD' | 'MYR';
+
+/** All currencies the app supports, with display symbols. */
+export const CURRENCIES: { code: Currency; symbol: string }[] = [
+  { code: 'INR', symbol: '₹' },
+  { code: 'USD', symbol: '$' },
+  { code: 'EUR', symbol: '€' },
+  { code: 'GBP', symbol: '£' },
+  { code: 'AUD', symbol: 'A$' },
+  { code: 'CAD', symbol: 'C$' },
+  { code: 'SGD', symbol: 'S$' },
+  { code: 'AED', symbol: 'د.إ' },
+  { code: 'JPY', symbol: '¥' },
+  { code: 'CHF', symbol: 'CHF' },
+  { code: 'NZD', symbol: 'NZ$' },
+  { code: 'MYR', symbol: 'RM' },
+];
+
+/** Approximate INR value of 1 unit of each currency (static fallback rates; the
+ *  user-editable assumptions.fxRate always wins for the country's alt currency). */
+export const FX_INR_PER: Record<Currency, number> = {
+  INR: 1, USD: 90, EUR: 98, GBP: 115, AUD: 58, CAD: 65,
+  SGD: 67, AED: 24.5, JPY: 0.60, CHF: 100, NZD: 54, MYR: 20,
+};
+
+export function curSymbol(c: Currency): string {
+  return CURRENCIES.find(x => x.code === c)?.symbol || c;
+}
 
 export type CountryCode = 'IN' | 'US' | 'CA' | 'AU' | 'GB' | 'AE';
 
